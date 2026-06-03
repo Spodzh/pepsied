@@ -10,18 +10,32 @@
         .game-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 650px; position: relative; }
         .game-wrapper { background: #2c1a48; border-radius: 48px; padding: 20px; box-shadow: 0 25px 40px rgba(0,0,0,0.6); border: 1px solid #a55eff; width: 100%; position: relative; }
         canvas { display: block; margin: 0 auto; border-radius: 24px; box-shadow: 0 0 0 3px #a55eff, 0 10px 25px black; width: 100%; height: auto; background: #2d1f3a; cursor: pointer; }
-        .info-bar { display: flex; justify-content: space-between; align-items: center; margin: 20px 10px 0; gap: 10px; flex-wrap: wrap; }
-        .score-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-weight: bold; font-family: monospace; font-size: 1.5rem; color: #e9c8ff; border: 1px solid #b77eff; display: flex; align-items: center; gap: 8px; }
-        .score-icon { width: 28px; height: 28px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .record-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-size: 1.2rem; color: #ffd966; border: 1px solid #b77eff; display: flex; align-items: center; gap: 6px; }
-        .lives-panel { background: #000000aa; padding: 5px 15px; border-radius: 50px; display: flex; gap: 5px; font-size: 1.3rem; }
-        .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.9rem; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .status { background: #000000aa; padding: 6px 16px; border-radius: 32px; font-size: 0.85rem; font-weight: 500; color: #f0e6b2; border: 1px solid #b77eff; text-align: center; }
-        .touch-controls { display: none; justify-content: center; margin-top: 30px; width: 100%; }
-        .dpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 80px; backdrop-filter: blur(4px); width: 280px; justify-items: center; align-items: center; }
-        .dir-btn { background: #2c1a48; border: 2px solid #a55eff; border-radius: 60px; color: white; font-size: 2.4rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 0 #0f0719; }
-        .dir-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0f0719; background: #7f4ac7; }
-        @media (max-width: 768px) { .touch-controls { display: flex; } .dir-btn { width: 65px; height: 65px; font-size: 1.8rem; } .dpad { width: 240px; gap: 8px; padding: 15px; } }
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 10px 0;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .score-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 6px 15px; border-radius: 50px; font-weight: bold; font-family: monospace; font-size: 1.3rem; color: #e9c8ff; border: 1px solid #b77eff; display: flex; align-items: center; gap: 6px; }
+        .score-icon { width: 24px; height: 24px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .record-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 6px 15px; border-radius: 50px; font-size: 1rem; color: #ffd966; border: 1px solid #b77eff; display: flex; align-items: center; gap: 5px; }
+        .lives-panel { background: #000000aa; padding: 5px 12px; border-radius: 50px; display: flex; gap: 4px; font-size: 1.1rem; }
+        .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.8rem; padding: 6px 14px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .touch-controls { display: none; justify-content: center; margin-top: 20px; width: 100%; }
+        .dpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 80px; backdrop-filter: blur(4px); width: 260px; justify-items: center; align-items: center; }
+        .dir-btn { background: #2c1a48; border: 2px solid #a55eff; border-radius: 60px; color: white; font-size: 2rem; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 0 #0f0719; }
+        .dir-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0f0719; background: #7f4ac7; }
+        @media (max-width: 768px) {
+            .touch-controls { display: flex; }
+            .dir-btn { width: 60px; height: 60px; font-size: 1.6rem; }
+            .dpad { width: 220px; gap: 8px; padding: 12px; }
+            .info-bar { gap: 6px; }
+            .score-panel { font-size: 1rem; padding: 4px 10px; }
+            .record-panel { font-size: 0.8rem; padding: 4px 10px; }
+            .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { font-size: 0.7rem; padding: 5px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -31,8 +45,7 @@
         <div class="info-bar">
             <div class="score-panel"><div id="scoreIcon" class="score-icon"></div><span id="scoreValue">0</span></div>
             <div class="record-panel"><span>🏅 Рекорд:</span><span id="recordValue">0</span></div>
-            <div id="livesPanel" class="lives-panel">❤️❤️❤️</div>
-            <div class="status" id="gameStatus">🐍 Игра активна</div>
+            <div id="livesPanel" class="lives-panel" style="display: none;">❤️❤️❤️</div>
             <button class="pause-btn" id="pauseBtn">⏸️ Пауза</button>
             <button class="sound-toggle" id="soundToggleBtn">🔊 Звук</button>
             <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
@@ -91,7 +104,7 @@
             if (!achievements.fiftyCollected && totalCollected >= 50) {
                 achievements.fiftyCollected = true;
                 saveAchievements();
-                addCoins(20); // бонус монет за достижение
+                addCoins(20);
             }
         }
         
@@ -151,7 +164,6 @@
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
         const recordSpan = document.getElementById('recordValue');
-        const gameStatusDiv = document.getElementById('gameStatus');
         const scoreIconElement = document.getElementById('scoreIcon');
         const livesPanel = document.getElementById('livesPanel');
         canvas.width = 600; canvas.height = 600;
@@ -165,11 +177,11 @@
                 personalBest = score;
                 localStorage.setItem('pepsiedPersonalBest', personalBest);
                 recordSpan.innerText = personalBest;
-                addCoins(5); // бонус за рекорд
+                addCoins(5);
             }
         }
         
-        // ------ КАРТИНКИ (без изменений) ------
+        // ------ КАРТИНКИ ------
         const grassBackground = new Image();
         grassBackground.src = "https://art.pixilart.com/6387674a5f8851d.png";
         let grassLoaded = false;
@@ -194,7 +206,7 @@
         let tailImageLoaded = false;
         tailImage.onload = () => { tailImageLoaded = true; draw(); };
         
-        // ------ БОНУСЫ (без изменений) ------
+        // ------ БОНУСЫ ------
         let bonus = null;
         let activeEffects = { speedMult: 1, scoreMult: 1, effectEndTime: 0 };
         let bonusEatenThisGame = 0;
@@ -240,10 +252,8 @@
             if (paused) {
                 if (gameLoop) clearInterval(gameLoop);
                 gameLoop = null;
-                gameStatusDiv.innerText = '⏸️ Пауза';
                 pauseBtn.innerText = '▶️ Старт';
             } else {
-                gameStatusDiv.innerText = '🐍 Игра активна';
                 pauseBtn.innerText = '⏸️ Пауза';
                 gameLoop = setInterval(gameTick, speedMs / (activeEffects.speedMult || 1));
             }
@@ -276,7 +286,7 @@
             }
         }
         
-        // ------ ИГРОВЫЕ ПЕРЕМЕННЫЕ (3 жизни) ------
+        // ------ ИГРОВЫЕ ПЕРЕМЕННЫЕ ------
         let snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
         let food = {x:12,y:12};
         let direction = 'RIGHT', nextDirection = 'RIGHT';
@@ -315,15 +325,12 @@
         }
         
         function resetSnakeAfterLifeLoss() {
-            // сброс змейки до начального состояния, счёт и бонусы сохраняются
             snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
             direction = 'RIGHT'; nextDirection = 'RIGHT';
-            // сохраняем счёт и скорость
             gameActive = true;
             speedMs = Math.max(70, baseSpeed - Math.floor(score/5)*speedIncreaseFactor);
             activeEffects = { speedMult: 1, scoreMult: 1, effectEndTime: 0 };
             bonus = null;
-            // генерируем новую еду, не на змейке
             generateRandomFood();
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(gameTick, speedMs / (activeEffects.speedMult || 1));
@@ -342,11 +349,8 @@
                     playSound('death');
                     window.location.replace('gameover.html');
                 } else {
-                    // воскрешение
                     playSound('death');
                     resetSnakeAfterLifeLoss();
-                    gameStatusDiv.innerText = `❤️ Осталось жизней: ${lives}`;
-                    setTimeout(() => { if (gameActive) gameStatusDiv.innerText = '🐍 Игра активна'; }, 1500);
                 }
                 return;
             } else {
@@ -369,7 +373,6 @@
             bonus = null;
             particles = [];
             paused = false;
-            gameStatusDiv.innerText = '🐍 Игра активна';
             pauseBtn.innerText = '⏸️ Пауза';
             if (isThreeLives) lives = 3;
             updateLivesDisplay();
@@ -390,7 +393,6 @@
             }
             if (freeCells.length===0) {
                 gameActive = false;
-                gameStatusDiv.innerText = '🏆 ПОБЕДА!';
                 if (gameLoop) clearInterval(gameLoop); gameLoop=null;
                 draw(); return;
             }
