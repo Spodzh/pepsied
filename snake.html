@@ -22,8 +22,140 @@
             font-family: 'Segoe UI', 'Montserrat', system-ui, -apple-system, sans-serif;
             padding: 16px;
             margin: 0;
+            position: relative;
         }
 
+        /* Плавающая кнопка лидеров */
+        .leaderboard-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2c1a48;
+            border: 2px solid #a55eff;
+            border-radius: 50px;
+            width: 55px;
+            height: 55px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 12px black;
+            transition: 0.1s;
+            backdrop-filter: blur(4px);
+        }
+        .leaderboard-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Панель лидеров (выезжающая) */
+        .leaderboard-panel {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 280px;
+            height: 100%;
+            background: rgba(20,10,40,0.95);
+            backdrop-filter: blur(16px);
+            border-left: 2px solid #a55eff;
+            z-index: 200;
+            transition: right 0.3s ease;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            font-family: monospace;
+        }
+        .leaderboard-panel.open {
+            right: 0;
+        }
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-bottom: 2px solid #a55eff;
+            padding-bottom: 10px;
+        }
+        .close-leaderboard {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+        .leaderboard-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #a55eff66;
+            font-size: 1.1rem;
+        }
+        .leaderboard-name {
+            font-weight: bold;
+        }
+        .leaderboard-score {
+            color: #ffd966;
+        }
+        .empty-leaderboard {
+            text-align: center;
+            color: #aaa;
+            margin-top: 30px;
+        }
+        /* Модальное окно для ввода имени */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(6px);
+        }
+        .modal-content {
+            background: #2c1a48;
+            border-radius: 48px;
+            padding: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 350px;
+            border: 2px solid #a55eff;
+        }
+        .modal-content h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 60px;
+            border: none;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .modal-content button {
+            background: #6600ff;
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        /* Остальные стили игры (как были) */
         .game-container {
             display: flex;
             flex-direction: column;
@@ -83,7 +215,6 @@
             background-repeat: no-repeat;
             background-position: center;
         }
-        /* Рекорд */
         .record-panel {
             background: #000000aa;
             backdrop-filter: blur(4px);
@@ -96,11 +227,7 @@
             align-items: center;
             gap: 6px;
         }
-        .record-icon {
-            font-size: 1.3rem;
-        }
-
-        .restart-btn, .back-to-menu {
+        .restart-btn, .back-to-menu, .music-toggle {
             background: #5f2e9e;
             border: none;
             color: white;
@@ -109,17 +236,12 @@
             padding: 8px 18px;
             border-radius: 40px;
             cursor: pointer;
-            transition: 0.1s linear;
             font-family: inherit;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            touch-action: manipulation;
         }
-
-        .restart-btn:active, .back-to-menu:active {
+        .restart-btn:active, .back-to-menu:active, .music-toggle:active {
             transform: scale(0.97);
-            background: #7f4ac7;
         }
-
         .status {
             background: #000000aa;
             padding: 6px 16px;
@@ -131,7 +253,7 @@
             text-align: center;
         }
 
-        /* КРЕСТОВИНА */
+        /* Крестовина */
         .touch-controls {
             display: none;
             justify-content: center;
@@ -156,111 +278,219 @@
             border-radius: 60px;
             color: white;
             font-size: 2.4rem;
-            font-weight: bold;
             width: 80px;
             height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: 0.05s linear;
             box-shadow: 0 6px 0 #0f0719;
-            touch-action: manipulation;
-            user-select: none;
         }
         .dir-btn:active {
             transform: translateY(4px);
             box-shadow: 0 2px 0 #0f0719;
             background: #7f4ac7;
         }
-        @media (max-width: 600px) {
-            .dpad {
-                width: 240px;
-                gap: 10px;
-                padding: 15px;
-            }
-            .dir-btn {
-                width: 70px;
-                height: 70px;
-                font-size: 2rem;
-            }
-        }
-        @media (max-width: 450px) {
-            .dpad {
-                width: 200px;
-                gap: 8px;
-                padding: 12px;
-            }
-            .dir-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 1.7rem;
-            }
-        }
         @media (max-width: 768px) {
-            .touch-controls {
-                display: flex;
-            }
-            body {
-                padding: 12px;
-            }
-            .game-wrapper {
-                padding: 15px;
-            }
-            .score-panel {
-                font-size: 1.2rem;
-                padding: 5px 12px;
-            }
-            .record-panel {
-                font-size: 1rem;
-                padding: 5px 12px;
-            }
-            .restart-btn, .back-to-menu {
-                font-size: 0.75rem;
-                padding: 6px 14px;
-            }
-            .status {
-                font-size: 0.7rem;
-                padding: 4px 10px;
-            }
+            .touch-controls { display: flex; }
+            .leaderboard-btn { width: 45px; height: 45px; font-size: 1.5rem; top: 10px; right: 10px; }
+            .leaderboard-panel { width: 260px; }
+            .dir-btn { width: 65px; height: 65px; font-size: 1.8rem; }
+            .dpad { width: 240px; gap: 8px; padding: 15px; }
         }
     </style>
 </head>
 <body>
-<div class="game-container">
-    <div class="game-wrapper">
-        <canvas id="snakeCanvas" width="600" height="600"></canvas>
-        <div class="info-bar">
-            <div class="score-panel">
-                <div id="scoreIcon" class="score-icon"></div>
-                <span id="scoreValue">0</span>
-            </div>
-            <div class="record-panel">
-                <span class="record-icon">🏆</span>
-                <span id="recordValue">0</span>
-            </div>
-            <div class="status" id="gameStatus">🐍 Игра активна</div>
-            <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
-            <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
+    <!-- Плавающая кнопка лидеров -->
+    <div class="leaderboard-btn" id="leaderboardBtn">🏆</div>
+
+    <!-- Панель лидеров -->
+    <div class="leaderboard-panel" id="leaderboardPanel">
+        <div class="leaderboard-header">
+            <span>🏆 ТАБЛИЦА ЛИДЕРОВ 🏆</span>
+            <button class="close-leaderboard" id="closeLeaderboardBtn">✖</button>
+        </div>
+        <div class="leaderboard-list" id="leaderboardList">
+            <div class="empty-leaderboard">Загрузка...</div>
         </div>
     </div>
-    <div class="touch-controls">
-        <div class="dpad">
-            <div></div>
-            <button class="dir-btn" data-dir="UP">▲</button>
-            <div></div>
-            <button class="dir-btn" data-dir="LEFT">◀</button>
-            <button class="dir-btn" data-dir="DOWN">▼</button>
-            <button class="dir-btn" data-dir="RIGHT">▶</button>
-            <div></div>
-            <div></div>
-            <div></div>
+
+    <!-- Модальное окно для ввода имени -->
+    <div id="nameModal" class="modal">
+        <div class="modal-content">
+            <h2>🐍 Укажите ваше имя</h2>
+            <input type="text" id="playerNameInput" maxlength="16" placeholder="Введите имя...">
+            <button id="saveNameBtn">Сохранить</button>
         </div>
     </div>
-</div>
+
+    <!-- Игровой контейнер -->
+    <div class="game-container">
+        <div class="game-wrapper">
+            <canvas id="snakeCanvas" width="600" height="600"></canvas>
+            <div class="info-bar">
+                <div class="score-panel">
+                    <div id="scoreIcon" class="score-icon"></div>
+                    <span id="scoreValue">0</span>
+                </div>
+                <div class="record-panel">
+                    <span>🏅 Рекорд:</span>
+                    <span id="recordValue">0</span>
+                </div>
+                <div class="status" id="gameStatus">🐍 Игра активна</div>
+                <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
+                <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
+                <button class="music-toggle" id="musicToggleBtn">🔊 Музыка</button>
+            </div>
+        </div>
+        <div class="touch-controls">
+            <div class="dpad">
+                <div></div><button class="dir-btn" data-dir="UP">▲</button><div></div>
+                <button class="dir-btn" data-dir="LEFT">◀</button>
+                <button class="dir-btn" data-dir="DOWN">▼</button>
+                <button class="dir-btn" data-dir="RIGHT">▶</button>
+                <div></div><div></div><div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Аудио для фоновой музыки (тихий трек, можно заменить на свою ссылку) -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <!-- Запасной трек -->
+    </audio>
 
 <script>
     (function(){
+        // ------------------- 1. РАБОТА С ИМЕНЕМ И ЛИДЕРАМИ -------------------
+        let playerName = localStorage.getItem('pepsiedPlayerName');
+        const nameModal = document.getElementById('nameModal');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const saveNameBtn = document.getElementById('saveNameBtn');
+
+        // Таблица лидеров (массив объектов {name, score})
+        let leaderboard = [];
+        function loadLeaderboard() {
+            const stored = localStorage.getItem('pepsiedLeaderboard');
+            if (stored) {
+                leaderboard = JSON.parse(stored);
+            } else {
+                leaderboard = [];
+            }
+            renderLeaderboard();
+        }
+        function saveLeaderboard() {
+            localStorage.setItem('pepsiedLeaderboard', JSON.stringify(leaderboard));
+        }
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div class="empty-leaderboard">Пока нет рекордов</div>';
+                return;
+            }
+            // сортируем по убыванию очков
+            const sorted = [...leaderboard].sort((a,b) => b.score - a.score);
+            const top5 = sorted.slice(0,5);
+            container.innerHTML = top5.map(entry => `
+                <div class="leaderboard-item">
+                    <span class="leaderboard-name">${escapeHtml(entry.name)}</span>
+                    <span class="leaderboard-score">${entry.score} 🍕</span>
+                </div>
+            `).join('');
+        }
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        // Добавить или обновить рекорд текущего игрока
+        function updateLeaderboard(score) {
+            if (!playerName) return;
+            // Ищем запись игрока
+            const existing = leaderboard.find(entry => entry.name === playerName);
+            if (existing) {
+                if (score > existing.score) {
+                    existing.score = score;
+                } else {
+                    return; // не побил рекорд
+                }
+            } else {
+                leaderboard.push({ name: playerName, score: score });
+            }
+            saveLeaderboard();
+            renderLeaderboard();
+        }
+
+        // Модальное окно для имени
+        if (!playerName) {
+            nameModal.style.display = 'flex';
+        } else {
+            nameModal.style.display = 'none';
+        }
+        saveNameBtn.addEventListener('click', () => {
+            let newName = playerNameInput.value.trim();
+            if (newName === "") {
+                newName = "Аноним";
+            }
+            playerName = newName;
+            localStorage.setItem('pepsiedPlayerName', playerName);
+            nameModal.style.display = 'none';
+            // После ввода имени загружаем лидеров
+            loadLeaderboard();
+        });
+
+        // ------------------- 2. ЛИДЕРБОРД ПАНЕЛЬ -------------------
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const leaderboardPanel = document.getElementById('leaderboardPanel');
+        const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+        function openLeaderboard() {
+            leaderboardPanel.classList.add('open');
+        }
+        function closeLeaderboard() {
+            leaderboardPanel.classList.remove('open');
+        }
+        leaderboardBtn.addEventListener('click', openLeaderboard);
+        closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
+        // Закрытие по клику вне панели (на телефоне)
+        document.addEventListener('click', (e) => {
+            if (leaderboardPanel.classList.contains('open') && !leaderboardPanel.contains(e.target) && e.target !== leaderboardBtn) {
+                closeLeaderboard();
+            }
+        });
+
+        // ------------------- 3. МУЗЫКА -------------------
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        let musicEnabled = localStorage.getItem('pepsiedMusic') !== 'false'; // по умолчанию включена
+        function setMusic(enable) {
+            if (enable) {
+                bgMusic.play().catch(e => console.log("autoplay blocked", e));
+                musicToggleBtn.innerText = "🔊 Музыка";
+            } else {
+                bgMusic.pause();
+                musicToggleBtn.innerText = "🔇 Музыка";
+            }
+            localStorage.setItem('pepsiedMusic', enable);
+        }
+        musicToggleBtn.addEventListener('click', () => {
+            musicEnabled = !musicEnabled;
+            setMusic(musicEnabled);
+        });
+        // Автозапуск (если разрешено)
+        if (musicEnabled) {
+            // Немного задержим, чтобы дать пользователю взаимодействовать
+            setTimeout(() => {
+                bgMusic.play().catch(e => console.log("autoplay blocked, user needs to tap", e));
+            }, 500);
+        } else {
+            setMusic(false);
+        }
+
+        // ------------------- 4. ИГРОВАЯ ЛОГИКА (ОБНОВЛЁННАЯ) -------------------
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
@@ -271,37 +501,33 @@
         const GRID_SIZE = 20;
         const CELL_SIZE = 30;
 
-        // Рекорд из localStorage
-        let highScore = localStorage.getItem('pepsiedHighScore') ? parseInt(localStorage.getItem('pepsiedHighScore')) : 0;
-        recordSpan.innerText = highScore;
+        // Рекорд (личный лучший счёт текущего игрока в сессии)
+        let personalBest = localStorage.getItem('pepsiedPersonalBest') ? parseInt(localStorage.getItem('pepsiedPersonalBest')) : 0;
+        recordSpan.innerText = personalBest;
 
-        // Функция обновления рекорда
-        function updateHighScore(currentScore) {
-            if (currentScore > highScore) {
-                highScore = currentScore;
-                localStorage.setItem('pepsiedHighScore', highScore);
-                recordSpan.innerText = highScore;
+        function updatePersonalBest(score) {
+            if (score > personalBest) {
+                personalBest = score;
+                localStorage.setItem('pepsiedPersonalBest', personalBest);
+                recordSpan.innerText = personalBest;
             }
         }
 
-        // === ЗАГРУЗКА КАРТИНОК ===
+        // --- НОВЫЙ ФОН ТРАВЫ ---
+        const grassBackground = new Image();
+        grassBackground.src = "https://art.pixilart.com/6387674a5f8851d.png";
+        let grassLoaded = false;
+        grassBackground.onload = () => { grassLoaded = true; draw(); };
+        grassBackground.onerror = () => { grassLoaded = false; };
+
+        // Картинки: иконка счёта, еда, голова, хвост
         const scoreIconImg = new Image();
         scoreIconImg.src = "https://mir-s3-cdn-cf.behance.net/project_modules/1400/0e0066214215461.6753e7b69faf5.png";
         scoreIconImg.onload = () => {
             scoreIconElement.style.backgroundImage = `url('${scoreIconImg.src}')`;
             scoreIconElement.style.backgroundSize = 'contain';
         };
-        scoreIconImg.onerror = () => {
-            scoreIconElement.innerText = '🍕';
-            scoreIconElement.style.fontSize = '1.4rem';
-            scoreIconElement.style.backgroundImage = 'none';
-        };
-
-        const backgroundImage = new Image();
-        backgroundImage.src = "https://as2.ftcdn.net/jpg/03/18/48/95/1000_F_318489561_qpVjxV7GEF4btKaiD4OWe78vX737Jnzz.jpg";
-        let backgroundLoaded = false;
-        backgroundImage.onload = () => { backgroundLoaded = true; draw(); };
-        backgroundImage.onerror = () => { backgroundLoaded = false; };
+        scoreIconImg.onerror = () => { scoreIconElement.innerText = '🍕'; };
 
         const foodImage = new Image();
         foodImage.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
@@ -321,23 +547,22 @@
         tailImage.onload = () => { tailImageLoaded = true; draw(); };
         tailImage.onerror = () => { tailImageLoaded = false; };
 
-        let snake = [
-            { x: 10, y: 10 },
-            { x: 9, y: 10 },
-            { x: 8, y: 10 }
-        ];
-        let food = { x: 12, y: 12 };
+        let snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+        let food = {x:12,y:12};
         let direction = 'RIGHT', nextDirection = 'RIGHT';
         let score = 0, gameLoop = null, gameActive = true, speedMs = 150;
+        const WIN_SCORE = 25; // ПОБЕДНЫЙ СЧЁТ 25
 
-        // Победа при счёте 10
         function checkWin() {
-            if (score >= 10) {
+            if (score >= WIN_SCORE) {
                 gameActive = false;
                 if (gameLoop) clearInterval(gameLoop);
                 gameLoop = null;
-                // Обновляем рекорд перед переходом
-                updateHighScore(score);
+                // Обновляем личный рекорд и таблицу лидеров
+                updatePersonalBest(score);
+                if (playerName) {
+                    updateLeaderboard(score);
+                }
                 window.location.replace('win.html');
                 return true;
             }
@@ -347,16 +572,15 @@
         function goToGameOver() {
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = null;
-            updateHighScore(score);
+            updatePersonalBest(score);
+            if (playerName && score > 0) {
+                updateLeaderboard(score);
+            }
             window.location.replace('gameover.html');
         }
 
         function initGame() {
-            snake = [
-                { x: 10, y: 10 },
-                { x: 9, y: 10 },
-                { x: 8, y: 10 }
-            ];
+            snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
             direction = 'RIGHT'; nextDirection = 'RIGHT';
             score = 0; updateScoreUI();
             gameActive = true; speedMs = 150;
@@ -369,50 +593,49 @@
 
         function generateRandomFood() {
             const freeCells = [];
-            for (let i = 0; i < GRID_SIZE; i++) {
-                for (let j = 0; j < GRID_SIZE; j++) {
+            for (let i=0; i<GRID_SIZE; i++) {
+                for (let j=0; j<GRID_SIZE; j++) {
                     let occupied = false;
-                    for (let s of snake) if (s.x === i && s.y === j) { occupied = true; break; }
-                    if (!occupied) freeCells.push({ x: i, y: j });
+                    for (let s of snake) if (s.x===i && s.y===j) { occupied=true; break; }
+                    if (!occupied) freeCells.push({x:i, y:j});
                 }
             }
-            if (freeCells.length === 0) {
-                gameActive = false; gameStatusDiv.innerText = '🏆 ПОБЕДА!';
-                if (gameLoop) clearInterval(gameLoop); gameLoop = null;
+            if (freeCells.length===0) {
+                gameActive = false;
+                gameStatusDiv.innerText = '🏆 ПОБЕДА!';
+                if (gameLoop) clearInterval(gameLoop); gameLoop=null;
                 draw(); return;
             }
-            food = freeCells[Math.floor(Math.random() * freeCells.length)];
+            food = freeCells[Math.floor(Math.random()*freeCells.length)];
         }
 
-        function updateScoreUI() { 
+        function updateScoreUI() {
             scoreSpan.innerText = score;
-            // Обновляем рекорд в реальном времени (если текущий счёт побил рекорд)
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('pepsiedHighScore', highScore);
-                recordSpan.innerText = highScore;
+            if (score > personalBest) {
+                personalBest = score;
+                localStorage.setItem('pepsiedPersonalBest', personalBest);
+                recordSpan.innerText = personalBest;
             }
         }
 
         function moveSnake() {
             if (!gameActive) return;
             direction = nextDirection;
-            let newHead = { ...snake[0] };
+            let newHead = {...snake[0]};
             switch(direction) {
                 case 'RIGHT': newHead.x++; break;
-                case 'LEFT':  newHead.x--; break;
-                case 'UP':    newHead.y--; break;
-                case 'DOWN':  newHead.y++; break;
+                case 'LEFT': newHead.x--; break;
+                case 'UP': newHead.y--; break;
+                case 'DOWN': newHead.y++; break;
             }
-            const willEat = (newHead.x === food.x && newHead.y === food.y);
+            const willEat = (newHead.x===food.x && newHead.y===food.y);
             if (willEat) {
                 snake.unshift(newHead);
                 score++;
                 updateScoreUI();
-                // Проверка на победу после увеличения счёта
                 if (checkWin()) return;
                 if (score % 5 === 0 && speedMs > 70) {
-                    speedMs = Math.max(70, speedMs - 7);
+                    speedMs = Math.max(70, speedMs-7);
                     clearInterval(gameLoop);
                     gameLoop = setInterval(gameTick, speedMs);
                 }
@@ -422,14 +645,14 @@
                 snake.pop();
             }
             const head = snake[0];
-            if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-                gameActive = false;
+            if (head.x<0 || head.x>=GRID_SIZE || head.y<0 || head.y>=GRID_SIZE) {
+                gameActive=false;
                 goToGameOver();
                 return;
             }
-            for (let i = 1; i < snake.length; i++) {
-                if (snake[i].x === head.x && snake[i].y === head.y) {
-                    gameActive = false;
+            for (let i=1; i<snake.length; i++) {
+                if (snake[i].x===head.x && snake[i].y===head.y) {
+                    gameActive=false;
                     goToGameOver();
                     return;
                 }
@@ -440,52 +663,49 @@
         function gameTick() { if (gameActive) moveSnake(); }
 
         function draw() {
-            if (!gameActive && gameLoop === null) return;
-            // Фон
-            if (backgroundLoaded && backgroundImage.complete && backgroundImage.naturalWidth > 0) {
-                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            // Новый фон травы
+            if (grassLoaded && grassBackground.complete && grassBackground.naturalWidth>0) {
+                ctx.drawImage(grassBackground, 0, 0, canvas.width, canvas.height);
             } else {
                 ctx.fillStyle = "#2d1f3a";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0,0,canvas.width,canvas.height);
             }
-            // Сетка
+            // Белая сетка
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.5;
-            for (let i = 0; i <= GRID_SIZE; i++) {
-                ctx.beginPath(); ctx.moveTo(i*CELL_SIZE, 0); ctx.lineTo(i*CELL_SIZE, canvas.height); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, i*CELL_SIZE); ctx.lineTo(canvas.width, i*CELL_SIZE); ctx.stroke();
+            for (let i=0; i<=GRID_SIZE; i++) {
+                ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke();
             }
             // Еда
-            if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth > 0) {
-                ctx.drawImage(foodImage, food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth>0) {
+                ctx.drawImage(foodImage, food.x*CELL_SIZE, food.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
             } else {
                 ctx.fillStyle = "#E31837";
                 ctx.beginPath();
-                ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, Math.PI*2);
+                ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, 2*Math.PI);
                 ctx.fill();
-                ctx.fillStyle = "white";
+                ctx.fillStyle="white";
                 ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
                 ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
             }
             // Змейка
-            for (let i = 0; i < snake.length; i++) {
+            for (let i=0; i<snake.length; i++) {
                 const s = snake[i];
-                const x = s.x * CELL_SIZE, y = s.y * CELL_SIZE;
-                const isHead = (i === 0);
-                if (isHead && headImageLoaded && headImage.complete && headImage.naturalWidth > 0) {
+                const x = s.x*CELL_SIZE, y = s.y*CELL_SIZE;
+                const isHead = (i===0);
+                if (isHead && headImageLoaded && headImage.complete && headImage.naturalWidth>0) {
                     ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
-                }
-                else if (!isHead && tailImageLoaded && tailImage.complete && tailImage.naturalWidth > 0) {
+                } else if (!isHead && tailImageLoaded && tailImage.complete && tailImage.naturalWidth>0) {
                     ctx.drawImage(tailImage, x, y, CELL_SIZE, CELL_SIZE);
-                }
-                else {
-                    const radius = CELL_SIZE * 0.4;
+                } else {
+                    const radius = CELL_SIZE*0.4;
                     ctx.beginPath();
-                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, Math.PI*2);
+                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI);
                     ctx.fillStyle = "#6a3e9a";
                     ctx.fill();
                     ctx.beginPath();
-                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, Math.PI*2);
+                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, 2*Math.PI);
                     ctx.fillStyle = isHead ? "#bc7eff" : "#9a5fdf";
                     ctx.fill();
                     if (!isHead) {
@@ -499,10 +719,11 @@
 
         function changeDirection(newDir) {
             if (!gameActive) return;
-            const opp = { 'UP':'DOWN', 'DOWN':'UP', 'LEFT':'RIGHT', 'RIGHT':'LEFT' };
+            const opp = {'UP':'DOWN','DOWN':'UP','LEFT':'RIGHT','RIGHT':'LEFT'};
             if (opp[newDir] !== direction) nextDirection = newDir;
         }
 
+        // Управление
         window.addEventListener('keydown', (e) => {
             const k = e.key;
             if (k === 'ArrowUp') changeDirection('UP');
@@ -511,24 +732,20 @@
             else if (k === 'ArrowRight') changeDirection('RIGHT');
             e.preventDefault();
         });
-
         document.querySelectorAll('.dir-btn').forEach(btn => {
             const dir = btn.getAttribute('data-dir');
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                changeDirection(dir);
-            });
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                changeDirection(dir);
-            });
+            btn.addEventListener('click', (e) => { e.preventDefault(); changeDirection(dir); });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(dir); });
         });
-
         document.getElementById('restartGameBtn').addEventListener('click', () => { if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('restartGameBtn').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('backToMenuBtn').addEventListener('click', () => window.location.href = 'index.html');
         document.getElementById('backToMenuBtn').addEventListener('touchstart', (e) => { e.preventDefault(); window.location.href = 'index.html'; });
 
+        // Загружаем лидеров при старте, если имя уже есть
+        if (playerName) {
+            loadLeaderboard();
+        }
         initGame();
     })();
 </script>
