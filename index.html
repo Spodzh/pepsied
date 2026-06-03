@@ -171,17 +171,17 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            position: relative;
+            border: 3px solid transparent;
+            transition: border 0.2s;
+        }
+        .skin-preview.selected {
+            border-color: #ffcc44;
+            box-shadow: 0 0 15px #ffcc44;
         }
         .skin-preview img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-        }
-        /* Индикатор выбранного скина (золотая рамка) */
-        .skin-preview.selected {
-            border: 4px solid #ffcc44;
-            box-shadow: 0 0 15px #ffcc44;
         }
         .skin-nav {
             display: flex;
@@ -272,7 +272,7 @@
     <div class="skin-modal-content">
         <h2>Выбери голову змеи</h2>
         <div class="skin-preview" id="skinPreviewContainer">
-            <img id="skinPreview" src="https://i.ibb.co/pBkq71nP/412421.png" alt="Скин">
+            <img id="skinPreview" src="" alt="Скин">
         </div>
         <div class="skin-nav">
             <button class="nav-arrow" id="prevSkinBtn">◀</button>
@@ -285,18 +285,24 @@
 </div>
 
 <script>
-    // Список скинов: [название, URL картинки]
+    // Список скинов (имя + URL)
     const skins = [
         { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png" },
         { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png" }
     ];
     
-    // Загружаем выбранный скин из localStorage
     let currentSkinIndex = 0;
-    const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
-    if (savedSkinIndex !== null && savedSkinIndex >= 0 && savedSkinIndex < skins.length) {
-        currentSkinIndex = parseInt(savedSkinIndex);
+    let tempSkinIndex = 0; // для навигации в модалке без сохранения
+    
+    // Загружаем сохранённый скин из localStorage
+    const savedSkin = localStorage.getItem('pepsiedSkinIndex');
+    if (savedSkin !== null && !isNaN(parseInt(savedSkin))) {
+        let idx = parseInt(savedSkin);
+        if (idx >= 0 && idx < skins.length) {
+            currentSkinIndex = idx;
+        }
     }
+    tempSkinIndex = currentSkinIndex;
     
     // Элементы
     const modal = document.getElementById('skinModal');
@@ -310,11 +316,10 @@
     const previewContainer = document.getElementById('skinPreviewContainer');
     
     function updatePreview() {
-        skinPreview.src = skins[currentSkinIndex].url;
-        skinNameSpan.innerText = skins[currentSkinIndex].name;
-        // Подсветка, если текущий просматриваемый скин совпадает с сохранённым
-        const saved = localStorage.getItem('pepsiedSkinIndex');
-        if (saved !== null && parseInt(saved) === currentSkinIndex) {
+        skinPreview.src = skins[tempSkinIndex].url;
+        skinNameSpan.innerText = skins[tempSkinIndex].name;
+        // Подсветка, если временный индекс совпадает с сохранённым
+        if (tempSkinIndex === currentSkinIndex) {
             previewContainer.classList.add('selected');
         } else {
             previewContainer.classList.remove('selected');
@@ -322,13 +327,8 @@
     }
     
     function openModal() {
-        // Синхронизируем currentSkinIndex с сохранённым значением при открытии
-        const saved = localStorage.getItem('pepsiedSkinIndex');
-        if (saved !== null && saved >= 0 && saved < skins.length) {
-            currentSkinIndex = parseInt(saved);
-        } else {
-            currentSkinIndex = 0;
-        }
+        // Синхронизируем временный индекс с текущим выбранным
+        tempSkinIndex = currentSkinIndex;
         updatePreview();
         modal.style.display = 'flex';
     }
@@ -338,24 +338,27 @@
     }
     
     function selectSkin() {
+        // Сохраняем выбранный скин
+        currentSkinIndex = tempSkinIndex;
         localStorage.setItem('pepsiedSkinIndex', currentSkinIndex);
-        updatePreview(); // обновить подсветку
         closeModal();
     }
     
     openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     selectBtn.addEventListener('click', selectSkin);
+    
     prevBtn.addEventListener('click', () => {
-        currentSkinIndex = (currentSkinIndex - 1 + skins.length) % skins.length;
-        updatePreview();
-    });
-    nextBtn.addEventListener('click', () => {
-        currentSkinIndex = (currentSkinIndex + 1) % skins.length;
+        tempSkinIndex = (tempSkinIndex - 1 + skins.length) % skins.length;
         updatePreview();
     });
     
-    // Закрыть модалку по клику вне содержимого
+    nextBtn.addEventListener('click', () => {
+        tempSkinIndex = (tempSkinIndex + 1) % skins.length;
+        updatePreview();
+    });
+    
+    // Закрыть по клику вне содержимого
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
     });
