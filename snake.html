@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Пепсиед — Змейка</title>
     <style>
-        /* Все старые стили (оставляем как есть, без изменений) */
+        /* Все стили остаются без изменений (как в прошлой версии) */
         * { margin: 0; padding: 0; user-select: none; box-sizing: border-box; touch-action: manipulation; }
         body { background: #1a0b2e; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', 'Montserrat', system-ui, sans-serif; padding: 16px; margin: 0; }
         .game-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 650px; }
@@ -50,13 +50,18 @@
 
 <script>
     (function(){
-        // --- ЗАГРУЗКА ВЫБРАННОГО СКИНА ---
-        let headImageUrl = "https://i.ibb.co/VW19FvXh/image.png"; // основной
+        // -------- ЗАГРУЗКА ВЫБРАННОГО СКИНА (НАДЁЖНО) --------
+        let headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png"; // по умолчанию Дана
         const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
-        if (savedSkinIndex === "1") {
-            headImageUrl = "https://i.ibb.co/60bMH9zX/image.png";
+        if (savedSkinIndex !== null && savedSkinIndex !== "") {
+            const idx = parseInt(savedSkinIndex);
+            if (idx === 1) {
+                headImageUrl = "https://i.ibb.co/VW19FvXh/image.png"; // Настя
+            } else {
+                headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png"; // Дана (на всякий случай)
+            }
         }
-        // --- КОНЕЦ ЗАГРУЗКИ СКИНА ---
+        // -------- КОНЕЦ ЗАГРУЗКИ --------
         
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
@@ -102,7 +107,7 @@
         foodImage.onload = () => { foodImageLoaded = true; draw(); };
         foodImage.onerror = () => { foodImageLoaded = false; };
 
-        // ГОЛОВА ЗМЕИ (выбранный скин)
+        // Голова змеи (ВЫБРАННЫЙ СКИН)
         const headImage = new Image();
         headImage.src = headImageUrl;
         let headImageLoaded = false;
