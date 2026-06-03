@@ -17,7 +17,6 @@
             overflow: hidden;
             font-family: 'Segoe UI', 'Montserrat', system-ui, 'Inter', sans-serif;
             background-color: #0a0c12;
-            position: relative;
         }
 
         .hero {
@@ -81,8 +80,15 @@
             line-height: 1.4;
         }
 
-        .start-btn {
+        .button-group {
+            display: flex;
+            gap: 20px;
             margin-top: 55px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .start-btn, .skin-btn {
             background: #6600ff;
             border: none;
             padding: 18px 50px;
@@ -97,12 +103,19 @@
             font-family: inherit;
         }
 
-        .start-btn:hover {
-            background: #7c1aff;
-            transform: scale(1.02);
+        .skin-btn {
+            background: #3a1a6e;
+            font-size: 1.5rem;
+            padding: 18px 35px;
         }
 
-        .start-btn:active {
+        .start-btn:hover, .skin-btn:hover {
+            background: #7c1aff;
+            transform: scale(1.02);
+            box-shadow: 0 16px 30px rgba(102, 0, 255, 0.6);
+        }
+
+        .start-btn:active, .skin-btn:active {
             transform: scale(0.98);
         }
 
@@ -120,133 +133,90 @@
             z-index: 2;
         }
 
-        /* Плавающая кнопка лидеров */
-        .leaderboard-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: #2c1a48;
-            border: 2px solid #a55eff;
-            border-radius: 50px;
-            width: 55px;
-            height: 55px;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-            box-shadow: 0 4px 12px black;
-            backdrop-filter: blur(4px);
-        }
-        .leaderboard-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Панель лидеров */
-        .leaderboard-panel {
-            position: fixed;
-            top: 0;
-            left: -320px;
-            width: 280px;
-            height: 100%;
-            background: rgba(20,10,40,0.95);
-            backdrop-filter: blur(16px);
-            border-right: 2px solid #a55eff;
-            z-index: 200;
-            transition: left 0.3s ease;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            color: white;
-            font-family: monospace;
-        }
-        .leaderboard-panel.open {
-            left: 0;
-        }
-        .leaderboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-bottom: 2px solid #a55eff;
-            padding-bottom: 10px;
-        }
-        .close-leaderboard {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-        }
-        .leaderboard-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid #a55eff66;
-            font-size: 1.1rem;
-        }
-        .leaderboard-name {
-            font-weight: bold;
-        }
-        .leaderboard-score {
-            color: #ffd966;
-        }
-        .empty-leaderboard {
-            text-align: center;
-            color: #aaa;
-            margin-top: 30px;
-        }
-
-        /* Модальное окно для ввода имени (на главном экране) */
-        .modal {
+        /* Модальное окно выбора скина */
+        .skin-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(6px);
         }
-        .modal-content {
+        .skin-modal-content {
             background: #2c1a48;
-            border-radius: 48px;
+            border-radius: 60px;
             padding: 30px;
             text-align: center;
-            width: 85%;
-            max-width: 350px;
+            width: 90%;
+            max-width: 400px;
             border: 2px solid #a55eff;
+            box-shadow: 0 20px 40px black;
         }
-        .modal-content h2 {
+        .skin-modal-content h2 {
             color: white;
             margin-bottom: 20px;
         }
-        .modal-content input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 60px;
-            border: none;
-            font-size: 1rem;
-            margin-bottom: 20px;
-            text-align: center;
+        .skin-preview {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            background: #1a0b2e;
+            border-radius: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
-        .modal-content button {
+        .skin-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .skin-nav {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 25px;
+        }
+        .nav-arrow {
+            background: #5f2e9e;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            padding: 5px 20px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .nav-arrow:active {
+            transform: scale(0.9);
+        }
+        .skin-name {
+            color: #ffd966;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .select-skin-btn {
             background: #6600ff;
             border: none;
-            color: white;
-            padding: 10px 25px;
+            padding: 12px 30px;
             border-radius: 60px;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+        }
+        .close-skin-modal {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 1rem;
+            margin-top: 15px;
             cursor: pointer;
         }
 
@@ -258,8 +228,8 @@
             .game-title { font-size: 3.5rem; }
             .description { font-size: 1.4rem; }
             .start-btn { font-size: 1.5rem; padding: 12px 32px; }
+            .skin-btn { font-size: 1.2rem; padding: 12px 25px; }
             .dev-credit { right: 30px; bottom: 18px; font-size: 0.9rem; }
-            .leaderboard-btn { width: 45px; height: 45px; font-size: 1.5rem; top: 10px; left: 10px; }
         }
 
         @media (max-width: 550px) {
@@ -270,135 +240,108 @@
             .game-title { font-size: 2.5rem; letter-spacing: 3px; }
             .description { font-size: 1.2rem; }
             .start-btn { font-size: 1.3rem; padding: 10px 26px; margin-top: 30px; }
-            .hero {
-                background-position: 85% center;
-            }
+            .skin-btn { font-size: 1rem; padding: 10px 20px; }
+            .button-group { gap: 15px; margin-top: 35px; }
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <div class="right-content">
-            <div class="game-title">ПЕПСИЕД</div>
-            <div class="description">
-                Донится любит пепси.<br>
-                Помоги ей съесть все пепси!!!
-            </div>
+<div class="hero">
+    <div class="right-content">
+        <div class="game-title">ПЕПСИЕД</div>
+        <div class="description">
+            Донится любит пепси.<br>
+            Помоги ей съесть все пепси!!!
+        </div>
+        <div class="button-group">
             <button class="start-btn" id="goToGameBtn">Начать играть</button>
-        </div>
-        <div class="dev-credit">Разработчик Влад Spodzh</div>
-    </div>
-
-    <!-- Кнопка лидеров -->
-    <div class="leaderboard-btn" id="leaderboardBtn">🏆</div>
-    <!-- Панель лидеров -->
-    <div class="leaderboard-panel" id="leaderboardPanel">
-        <div class="leaderboard-header">
-            <span>🏆 ТАБЛИЦА ЛИДЕРОВ 🏆</span>
-            <button class="close-leaderboard" id="closeLeaderboardBtn">✖</button>
-        </div>
-        <div class="leaderboard-list" id="leaderboardList">
-            <div class="empty-leaderboard">Загрузка...</div>
+            <button class="skin-btn" id="openSkinBtn">👕 Выбрать скин</button>
         </div>
     </div>
+    <div class="dev-credit">Разработчик Влад Spodzh</div>
+</div>
 
-    <!-- Модальное окно для ввода имени (показывается только если имя не задано) -->
-    <div id="nameModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>🐍 Укажите ваше имя</h2>
-            <input type="text" id="playerNameInput" maxlength="16" placeholder="Введите имя...">
-            <button id="saveNameBtn">Сохранить</button>
+<!-- Модальное окно выбора скина -->
+<div id="skinModal" class="skin-modal">
+    <div class="skin-modal-content">
+        <h2>Выбери голову змеи</h2>
+        <div class="skin-preview">
+            <img id="skinPreview" src="https://i.ibb.co/pBkq71nP/412421.png" alt="Скин">
         </div>
+        <div class="skin-nav">
+            <button class="nav-arrow" id="prevSkinBtn">◀</button>
+            <button class="nav-arrow" id="nextSkinBtn">▶</button>
+        </div>
+        <div class="skin-name" id="skinName">Основной скин</div>
+        <button class="select-skin-btn" id="selectSkinBtn">Выбрать</button>
+        <button class="close-skin-modal" id="closeSkinModalBtn">Закрыть</button>
     </div>
+</div>
 
-    <script>
-        // Работа с именем и лидерами
-        let playerName = localStorage.getItem('pepsiedPlayerName');
-        const nameModal = document.getElementById('nameModal');
-        const playerNameInput = document.getElementById('playerNameInput');
-        const saveNameBtn = document.getElementById('saveNameBtn');
-
-        // Таблица лидеров
-        let leaderboard = [];
-        function loadLeaderboard() {
-            const stored = localStorage.getItem('pepsiedLeaderboard');
-            if (stored) {
-                leaderboard = JSON.parse(stored);
-            } else {
-                leaderboard = [];
-            }
-            renderLeaderboard();
-        }
-        function saveLeaderboard() {
-            localStorage.setItem('pepsiedLeaderboard', JSON.stringify(leaderboard));
-        }
-        function renderLeaderboard() {
-            const container = document.getElementById('leaderboardList');
-            if (!container) return;
-            if (leaderboard.length === 0) {
-                container.innerHTML = '<div class="empty-leaderboard">Пока нет рекордов</div>';
-                return;
-            }
-            const sorted = [...leaderboard].sort((a,b) => b.score - a.score);
-            const top5 = sorted.slice(0,5);
-            container.innerHTML = top5.map(entry => `
-                <div class="leaderboard-item">
-                    <span class="leaderboard-name">${escapeHtml(entry.name)}</span>
-                    <span class="leaderboard-score">${entry.score} 🍕</span>
-                </div>
-            `).join('');
-        }
-        function escapeHtml(str) {
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        // Показать модальное окно, если имя не задано
-        if (!playerName) {
-            nameModal.style.display = 'flex';
-        } else {
-            nameModal.style.display = 'none';
-            loadLeaderboard();
-        }
-
-        saveNameBtn.addEventListener('click', () => {
-            let newName = playerNameInput.value.trim();
-            if (newName === "") {
-                newName = "Аноним";
-            }
-            playerName = newName;
-            localStorage.setItem('pepsiedPlayerName', playerName);
-            nameModal.style.display = 'none';
-            loadLeaderboard();
-        });
-
-        // Управление панелью лидеров
-        const leaderboardBtn = document.getElementById('leaderboardBtn');
-        const leaderboardPanel = document.getElementById('leaderboardPanel');
-        const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
-        function openLeaderboard() {
-            leaderboardPanel.classList.add('open');
-        }
-        function closeLeaderboard() {
-            leaderboardPanel.classList.remove('open');
-        }
-        leaderboardBtn.addEventListener('click', openLeaderboard);
-        closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
-        // Закрытие по клику вне панели
-        document.addEventListener('click', (e) => {
-            if (leaderboardPanel.classList.contains('open') && !leaderboardPanel.contains(e.target) && e.target !== leaderboardBtn) {
-                closeLeaderboard();
-            }
-        });
-
-        // Переход в игру
-        document.getElementById('goToGameBtn').addEventListener('click', () => {
-            window.location.href = 'snake.html';
-        });
-    </script>
+<script>
+    // Список скинов: [название, URL картинки]
+    const skins = [
+        { name: "Основной скин", url: "https://i.ibb.co/pBkq71nP/412421.png" },
+        { name: "Новый скин", url: "https://i.ibb.co/60bMH9zX/image.png" }
+    ];
+    let currentSkinIndex = 0;
+    
+    // Загружаем выбранный скин из localStorage
+    const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
+    if (savedSkinIndex !== null && savedSkinIndex >= 0 && savedSkinIndex < skins.length) {
+        currentSkinIndex = parseInt(savedSkinIndex);
+    }
+    
+    // Элементы модалки
+    const modal = document.getElementById('skinModal');
+    const openBtn = document.getElementById('openSkinBtn');
+    const closeBtn = document.getElementById('closeSkinModalBtn');
+    const prevBtn = document.getElementById('prevSkinBtn');
+    const nextBtn = document.getElementById('nextSkinBtn');
+    const selectBtn = document.getElementById('selectSkinBtn');
+    const skinPreview = document.getElementById('skinPreview');
+    const skinNameSpan = document.getElementById('skinName');
+    
+    function updatePreview() {
+        skinPreview.src = skins[currentSkinIndex].url;
+        skinNameSpan.innerText = skins[currentSkinIndex].name;
+    }
+    
+    function openModal() {
+        updatePreview();
+        modal.style.display = 'flex';
+    }
+    
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+    
+    function selectSkin() {
+        localStorage.setItem('pepsiedSkinIndex', currentSkinIndex);
+        closeModal();
+    }
+    
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    selectBtn.addEventListener('click', selectSkin);
+    prevBtn.addEventListener('click', () => {
+        currentSkinIndex = (currentSkinIndex - 1 + skins.length) % skins.length;
+        updatePreview();
+    });
+    nextBtn.addEventListener('click', () => {
+        currentSkinIndex = (currentSkinIndex + 1) % skins.length;
+        updatePreview();
+    });
+    
+    // Закрыть модалку по клику вне содержимого
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    
+    // Переход в игру
+    document.getElementById('goToGameBtn').addEventListener('click', () => {
+        window.location.href = 'snake.html';
+    });
+</script>
 </body>
 </html>
