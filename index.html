@@ -171,11 +171,17 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            position: relative;
         }
         .skin-preview img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+        }
+        /* Индикатор выбранного скина (золотая рамка) */
+        .skin-preview.selected {
+            border: 4px solid #ffcc44;
+            box-shadow: 0 0 15px #ffcc44;
         }
         .skin-nav {
             display: flex;
@@ -265,14 +271,14 @@
 <div id="skinModal" class="skin-modal">
     <div class="skin-modal-content">
         <h2>Выбери голову змеи</h2>
-        <div class="skin-preview">
+        <div class="skin-preview" id="skinPreviewContainer">
             <img id="skinPreview" src="https://i.ibb.co/pBkq71nP/412421.png" alt="Скин">
         </div>
         <div class="skin-nav">
             <button class="nav-arrow" id="prevSkinBtn">◀</button>
             <button class="nav-arrow" id="nextSkinBtn">▶</button>
         </div>
-        <div class="skin-name" id="skinName">Основной скин</div>
+        <div class="skin-name" id="skinName">Дана</div>
         <button class="select-skin-btn" id="selectSkinBtn">Выбрать</button>
         <button class="close-skin-modal" id="closeSkinModalBtn">Закрыть</button>
     </div>
@@ -281,18 +287,18 @@
 <script>
     // Список скинов: [название, URL картинки]
     const skins = [
-    { name: "Основной скин", url: "https://i.ibb.co/pBkq71nP/412421.png" },
-    { name: "Новый скин", url: "https://i.ibb.co/VW19FvXh/image.png" }
-];
-    let currentSkinIndex = 0;
+        { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png" },
+        { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png" }
+    ];
     
     // Загружаем выбранный скин из localStorage
+    let currentSkinIndex = 0;
     const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
     if (savedSkinIndex !== null && savedSkinIndex >= 0 && savedSkinIndex < skins.length) {
         currentSkinIndex = parseInt(savedSkinIndex);
     }
     
-    // Элементы модалки
+    // Элементы
     const modal = document.getElementById('skinModal');
     const openBtn = document.getElementById('openSkinBtn');
     const closeBtn = document.getElementById('closeSkinModalBtn');
@@ -301,13 +307,28 @@
     const selectBtn = document.getElementById('selectSkinBtn');
     const skinPreview = document.getElementById('skinPreview');
     const skinNameSpan = document.getElementById('skinName');
+    const previewContainer = document.getElementById('skinPreviewContainer');
     
     function updatePreview() {
         skinPreview.src = skins[currentSkinIndex].url;
         skinNameSpan.innerText = skins[currentSkinIndex].name;
+        // Подсветка, если текущий просматриваемый скин совпадает с сохранённым
+        const saved = localStorage.getItem('pepsiedSkinIndex');
+        if (saved !== null && parseInt(saved) === currentSkinIndex) {
+            previewContainer.classList.add('selected');
+        } else {
+            previewContainer.classList.remove('selected');
+        }
     }
     
     function openModal() {
+        // Синхронизируем currentSkinIndex с сохранённым значением при открытии
+        const saved = localStorage.getItem('pepsiedSkinIndex');
+        if (saved !== null && saved >= 0 && saved < skins.length) {
+            currentSkinIndex = parseInt(saved);
+        } else {
+            currentSkinIndex = 0;
+        }
         updatePreview();
         modal.style.display = 'flex';
     }
@@ -318,6 +339,7 @@
     
     function selectSkin() {
         localStorage.setItem('pepsiedSkinIndex', currentSkinIndex);
+        updatePreview(); // обновить подсветку
         closeModal();
     }
     
