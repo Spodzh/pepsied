@@ -17,13 +17,13 @@
             overflow: hidden;
             font-family: 'Segoe UI', 'Montserrat', system-ui, 'Inter', sans-serif;
             background-color: #0a0c12;
+            position: relative;
         }
 
         .hero {
             position: relative;
             width: 100%;
             height: 100%;
-            /* НОВАЯ КАРТИНКА */
             background-image: url('https://i.ibb.co/Zp4JX1r3/2.png');
             background-size: cover;
             background-position: center center;
@@ -100,7 +100,6 @@
         .start-btn:hover {
             background: #7c1aff;
             transform: scale(1.02);
-            box-shadow: 0 16px 30px rgba(102, 0, 255, 0.6);
         }
 
         .start-btn:active {
@@ -121,6 +120,136 @@
             z-index: 2;
         }
 
+        /* Плавающая кнопка лидеров */
+        .leaderboard-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #2c1a48;
+            border: 2px solid #a55eff;
+            border-radius: 50px;
+            width: 55px;
+            height: 55px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 12px black;
+            backdrop-filter: blur(4px);
+        }
+        .leaderboard-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Панель лидеров */
+        .leaderboard-panel {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 280px;
+            height: 100%;
+            background: rgba(20,10,40,0.95);
+            backdrop-filter: blur(16px);
+            border-right: 2px solid #a55eff;
+            z-index: 200;
+            transition: left 0.3s ease;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            font-family: monospace;
+        }
+        .leaderboard-panel.open {
+            left: 0;
+        }
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-bottom: 2px solid #a55eff;
+            padding-bottom: 10px;
+        }
+        .close-leaderboard {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+        .leaderboard-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #a55eff66;
+            font-size: 1.1rem;
+        }
+        .leaderboard-name {
+            font-weight: bold;
+        }
+        .leaderboard-score {
+            color: #ffd966;
+        }
+        .empty-leaderboard {
+            text-align: center;
+            color: #aaa;
+            margin-top: 30px;
+        }
+
+        /* Модальное окно для ввода имени (на главном экране) */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(6px);
+        }
+        .modal-content {
+            background: #2c1a48;
+            border-radius: 48px;
+            padding: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 350px;
+            border: 2px solid #a55eff;
+        }
+        .modal-content h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 60px;
+            border: none;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .modal-content button {
+            background: #6600ff;
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
         @media (max-width: 850px) {
             .right-content {
                 width: 70%;
@@ -130,6 +259,7 @@
             .description { font-size: 1.4rem; }
             .start-btn { font-size: 1.5rem; padding: 12px 32px; }
             .dev-credit { right: 30px; bottom: 18px; font-size: 0.9rem; }
+            .leaderboard-btn { width: 45px; height: 45px; font-size: 1.5rem; top: 10px; left: 10px; }
         }
 
         @media (max-width: 550px) {
@@ -140,26 +270,135 @@
             .game-title { font-size: 2.5rem; letter-spacing: 3px; }
             .description { font-size: 1.2rem; }
             .start-btn { font-size: 1.3rem; padding: 10px 26px; margin-top: 30px; }
+            .hero {
+                background-position: 85% center;
+            }
         }
     </style>
 </head>
 <body>
-<div class="hero">
-    <div class="right-content">
-        <div class="game-title">ПЕПСИЕД</div>
-        <div class="description">
-            Донится любит пепси.<br>
-            Помоги ей съесть все пепси!!!
+    <div class="hero">
+        <div class="right-content">
+            <div class="game-title">ПЕПСИЕД</div>
+            <div class="description">
+                Донится любит пепси.<br>
+                Помоги ей съесть все пепси!!!
+            </div>
+            <button class="start-btn" id="goToGameBtn">Начать играть</button>
         </div>
-        <button class="start-btn" id="goToGameBtn">Начать играть</button>
+        <div class="dev-credit">Разработчик Влад Spodzh</div>
     </div>
-    <div class="dev-credit">Разработчик Влад Spodzh</div>
-</div>
 
-<script>
-    document.getElementById('goToGameBtn').addEventListener('click', () => {
-        window.location.href = 'snake.html';
-    });
-</script>
+    <!-- Кнопка лидеров -->
+    <div class="leaderboard-btn" id="leaderboardBtn">🏆</div>
+    <!-- Панель лидеров -->
+    <div class="leaderboard-panel" id="leaderboardPanel">
+        <div class="leaderboard-header">
+            <span>🏆 ТАБЛИЦА ЛИДЕРОВ 🏆</span>
+            <button class="close-leaderboard" id="closeLeaderboardBtn">✖</button>
+        </div>
+        <div class="leaderboard-list" id="leaderboardList">
+            <div class="empty-leaderboard">Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ввода имени (показывается только если имя не задано) -->
+    <div id="nameModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🐍 Укажите ваше имя</h2>
+            <input type="text" id="playerNameInput" maxlength="16" placeholder="Введите имя...">
+            <button id="saveNameBtn">Сохранить</button>
+        </div>
+    </div>
+
+    <script>
+        // Работа с именем и лидерами
+        let playerName = localStorage.getItem('pepsiedPlayerName');
+        const nameModal = document.getElementById('nameModal');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const saveNameBtn = document.getElementById('saveNameBtn');
+
+        // Таблица лидеров
+        let leaderboard = [];
+        function loadLeaderboard() {
+            const stored = localStorage.getItem('pepsiedLeaderboard');
+            if (stored) {
+                leaderboard = JSON.parse(stored);
+            } else {
+                leaderboard = [];
+            }
+            renderLeaderboard();
+        }
+        function saveLeaderboard() {
+            localStorage.setItem('pepsiedLeaderboard', JSON.stringify(leaderboard));
+        }
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div class="empty-leaderboard">Пока нет рекордов</div>';
+                return;
+            }
+            const sorted = [...leaderboard].sort((a,b) => b.score - a.score);
+            const top5 = sorted.slice(0,5);
+            container.innerHTML = top5.map(entry => `
+                <div class="leaderboard-item">
+                    <span class="leaderboard-name">${escapeHtml(entry.name)}</span>
+                    <span class="leaderboard-score">${entry.score} 🍕</span>
+                </div>
+            `).join('');
+        }
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Показать модальное окно, если имя не задано
+        if (!playerName) {
+            nameModal.style.display = 'flex';
+        } else {
+            nameModal.style.display = 'none';
+            loadLeaderboard();
+        }
+
+        saveNameBtn.addEventListener('click', () => {
+            let newName = playerNameInput.value.trim();
+            if (newName === "") {
+                newName = "Аноним";
+            }
+            playerName = newName;
+            localStorage.setItem('pepsiedPlayerName', playerName);
+            nameModal.style.display = 'none';
+            loadLeaderboard();
+        });
+
+        // Управление панелью лидеров
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const leaderboardPanel = document.getElementById('leaderboardPanel');
+        const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+        function openLeaderboard() {
+            leaderboardPanel.classList.add('open');
+        }
+        function closeLeaderboard() {
+            leaderboardPanel.classList.remove('open');
+        }
+        leaderboardBtn.addEventListener('click', openLeaderboard);
+        closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
+        // Закрытие по клику вне панели
+        document.addEventListener('click', (e) => {
+            if (leaderboardPanel.classList.contains('open') && !leaderboardPanel.contains(e.target) && e.target !== leaderboardBtn) {
+                closeLeaderboard();
+            }
+        });
+
+        // Переход в игру
+        document.getElementById('goToGameBtn').addEventListener('click', () => {
+            window.location.href = 'snake.html';
+        });
+    </script>
 </body>
 </html>
