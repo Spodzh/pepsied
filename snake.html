@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Пепсиед — Змейка</title>
     <style>
-        /* Все стили остаются без изменений (как в прошлой версии) */
         * { margin: 0; padding: 0; user-select: none; box-sizing: border-box; touch-action: manipulation; }
         body { background: #1a0b2e; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', 'Montserrat', system-ui, sans-serif; padding: 16px; margin: 0; }
         .game-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 650px; }
@@ -50,18 +49,19 @@
 
 <script>
     (function(){
-        // -------- ЗАГРУЗКА ВЫБРАННОГО СКИНА (НАДЁЖНО) --------
-        let headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png"; // по умолчанию Дана
+        // ---- ЗАГРУЗКА СКИНА ИЗ localStorage ----
+        let headImageUrl = "";
         const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
-        if (savedSkinIndex !== null && savedSkinIndex !== "") {
-            const idx = parseInt(savedSkinIndex);
-            if (idx === 1) {
-                headImageUrl = "https://i.ibb.co/VW19FvXh/image.png"; // Настя
-            } else {
-                headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png"; // Дана (на всякий случай)
-            }
+        console.log("Сохранённый индекс скина:", savedSkinIndex);
+        
+        if (savedSkinIndex === "1") {
+            headImageUrl = "https://i.ibb.co/VW19FvXh/image.png"; // Скин Настя
+            console.log("Выбран скин: Настя", headImageUrl);
+        } else {
+            headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png"; // Скин Дана (по умолчанию)
+            console.log("Выбран скин: Дана", headImageUrl);
         }
-        // -------- КОНЕЦ ЗАГРУЗКИ --------
+        // ---- КОНЕЦ ----
         
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
@@ -89,7 +89,7 @@
         grassBackground.src = "https://art.pixilart.com/6387674a5f8851d.png";
         let grassLoaded = false;
         grassBackground.onload = () => { grassLoaded = true; draw(); };
-        grassBackground.onerror = () => { grassLoaded = false; };
+        grassBackground.onerror = () => { grassLoaded = false; console.warn("Фон травы не загрузился"); };
 
         // Иконка счёта
         const scoreIconImg = new Image();
@@ -98,28 +98,36 @@
             scoreIconElement.style.backgroundImage = `url('${scoreIconImg.src}')`;
             scoreIconElement.style.backgroundSize = 'contain';
         };
-        scoreIconImg.onerror = () => { scoreIconElement.innerText = '🍕'; };
+        scoreIconImg.onerror = () => { scoreIconElement.innerText = '🍕'; console.warn("Иконка счёта не загрузилась"); };
 
         // Еда
         const foodImage = new Image();
         foodImage.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
         let foodImageLoaded = false;
         foodImage.onload = () => { foodImageLoaded = true; draw(); };
-        foodImage.onerror = () => { foodImageLoaded = false; };
+        foodImage.onerror = () => { foodImageLoaded = false; console.warn("Еда не загрузилась"); };
 
-        // Голова змеи (ВЫБРАННЫЙ СКИН)
+        // Голова змеи (выбранный скин)
         const headImage = new Image();
         headImage.src = headImageUrl;
         let headImageLoaded = false;
-        headImage.onload = () => { headImageLoaded = true; draw(); };
-        headImage.onerror = () => { headImageLoaded = false; };
+        headImage.onload = () => { 
+            headImageLoaded = true; 
+            console.log("Голова загружена успешно:", headImageUrl);
+            draw(); 
+        };
+        headImage.onerror = () => { 
+            headImageLoaded = false; 
+            console.error("НЕ УДАЛОСЬ ЗАГРУЗИТЬ ГОЛОВУ:", headImageUrl);
+            draw(); // всё равно рисуем, но будет запасной круг
+        };
 
         // Хвост (логотип Pepsi)
         const tailImage = new Image();
         tailImage.src = "https://cdn-icons-png.flaticon.com/512/732/732064.png";
         let tailImageLoaded = false;
         tailImage.onload = () => { tailImageLoaded = true; draw(); };
-        tailImage.onerror = () => { tailImageLoaded = false; };
+        tailImage.onerror = () => { tailImageLoaded = false; console.warn("Хвост не загрузился"); };
 
         let snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
         let food = {x:12,y:12};
@@ -230,18 +238,21 @@
         function gameTick() { if (gameActive) moveSnake(); }
 
         function draw() {
+            // Фон
             if (grassLoaded && grassBackground.complete && grassBackground.naturalWidth>0) {
                 ctx.drawImage(grassBackground, 0, 0, canvas.width, canvas.height);
             } else {
                 ctx.fillStyle = "#2d1f3a";
                 ctx.fillRect(0,0,canvas.width,canvas.height);
             }
+            // Сетка
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.5;
             for (let i=0; i<=GRID_SIZE; i++) {
                 ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke();
             }
+            // Еда
             if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth>0) {
                 ctx.drawImage(foodImage, food.x*CELL_SIZE, food.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
             } else {
@@ -253,15 +264,28 @@
                 ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
                 ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
             }
+            // Змейка
             for (let i=0; i<snake.length; i++) {
                 const s = snake[i];
                 const x = s.x*CELL_SIZE, y = s.y*CELL_SIZE;
                 const isHead = (i===0);
                 if (isHead && headImageLoaded && headImage.complete && headImage.naturalWidth>0) {
                     ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
-                } else if (!isHead && tailImageLoaded && tailImage.complete && tailImage.naturalWidth>0) {
+                } else if (isHead) {
+                    // Запасной вариант: фиолетовый круг с надписью "?"
+                    const radius = CELL_SIZE*0.4;
+                    ctx.beginPath();
+                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI);
+                    ctx.fillStyle = "#bc7eff";
+                    ctx.fill();
+                    ctx.fillStyle = "white";
+                    ctx.font = `bold ${CELL_SIZE*0.5}px monospace`;
+                    ctx.fillText("?", x+CELL_SIZE/2-6, y+CELL_SIZE/2+8);
+                }
+                else if (!isHead && tailImageLoaded && tailImage.complete && tailImage.naturalWidth>0) {
                     ctx.drawImage(tailImage, x, y, CELL_SIZE, CELL_SIZE);
-                } else {
+                }
+                else {
                     const radius = CELL_SIZE*0.4;
                     ctx.beginPath();
                     ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI);
@@ -269,13 +293,11 @@
                     ctx.fill();
                     ctx.beginPath();
                     ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, 2*Math.PI);
-                    ctx.fillStyle = isHead ? "#bc7eff" : "#9a5fdf";
+                    ctx.fillStyle = "#9a5fdf";
                     ctx.fill();
-                    if (!isHead) {
-                        ctx.fillStyle = "#e8d5ff";
-                        ctx.font = `${CELL_SIZE*0.55}px "Segoe UI Emoji"`;
-                        ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6);
-                    }
+                    ctx.fillStyle = "#e8d5ff";
+                    ctx.font = `${CELL_SIZE*0.55}px "Segoe UI Emoji"`;
+                    ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6);
                 }
             }
         }
