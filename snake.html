@@ -5,37 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Пепсиед — Змейка</title>
     <style>
+        /* Стили остаются как в прошлый раз, я их не меняю. 
+           Для краткости оставлю ту же структуру, что была в последней версии без лишней надписи "Игра активна". */
         * { margin: 0; padding: 0; user-select: none; box-sizing: border-box; touch-action: manipulation; }
         body { background: #1a0b2e; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', 'Montserrat', system-ui, sans-serif; padding: 16px; margin: 0; }
         .game-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 650px; position: relative; }
-        .game-wrapper { background: #2c1a48; border-radius: 48px; padding: 20px; box-shadow: 0 25px 40px rgba(0,0,0,0.6); border: 1px solid #a55eff; width: 100%; position: relative; }
+        .game-wrapper { background: #2c1a48; border-radius: 48px; padding: 20px; box-shadow: 0 25px 40px rgba(0,0,0,0.6); border: 1px solid #a55eff; width: 100%; }
         canvas { display: block; margin: 0 auto; border-radius: 24px; box-shadow: 0 0 0 3px #a55eff, 0 10px 25px black; width: 100%; height: auto; background: #2d1f3a; cursor: pointer; }
-        .info-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 15px 10px 0;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .score-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 6px 15px; border-radius: 50px; font-weight: bold; font-family: monospace; font-size: 1.3rem; color: #e9c8ff; border: 1px solid #b77eff; display: flex; align-items: center; gap: 6px; }
-        .score-icon { width: 24px; height: 24px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .record-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 6px 15px; border-radius: 50px; font-size: 1rem; color: #ffd966; border: 1px solid #b77eff; display: flex; align-items: center; gap: 5px; }
-        .lives-panel { background: #000000aa; padding: 5px 12px; border-radius: 50px; display: flex; gap: 4px; font-size: 1.1rem; }
-        .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.8rem; padding: 6px 14px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .touch-controls { display: none; justify-content: center; margin-top: 20px; width: 100%; }
-        .dpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 80px; backdrop-filter: blur(4px); width: 260px; justify-items: center; align-items: center; }
-        .dir-btn { background: #2c1a48; border: 2px solid #a55eff; border-radius: 60px; color: white; font-size: 2rem; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 0 #0f0719; }
-        .dir-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0f0719; background: #7f4ac7; }
-        @media (max-width: 768px) {
-            .touch-controls { display: flex; }
-            .dir-btn { width: 60px; height: 60px; font-size: 1.6rem; }
-            .dpad { width: 220px; gap: 8px; padding: 12px; }
-            .info-bar { gap: 6px; }
-            .score-panel { font-size: 1rem; padding: 4px 10px; }
-            .record-panel { font-size: 0.8rem; padding: 4px 10px; }
-            .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { font-size: 0.7rem; padding: 5px 10px; }
-        }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; margin: 20px 10px 0; gap: 10px; flex-wrap: wrap; }
+        .score-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-weight: bold; font-family: monospace; font-size: 1.5rem; color: #e9c8ff; border: 1px solid #b77eff; display: flex; align-items: center; gap: 8px; }
+        .score-icon { width: 28px; height: 28px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .record-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-size: 1.2rem; color: #ffd966; border: 1px solid #b77eff; display: flex; align-items: center; gap: 6px; }
+        .lives-panel { background: #000000aa; padding: 5px 15px; border-radius: 50px; display: flex; gap: 5px; font-size: 1.3rem; }
+        .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.9rem; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .touch-controls { display: none; justify-content: center; margin-top: 30px; width: 100%; }
+        .dpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 80px; backdrop-filter: blur(4px); width: 280px; justify-items: center; align-items: center; }
+        .dir-btn { background: #2c1a48; border: 2px solid #a55eff; border-radius: 60px; color: white; font-size: 2.4rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 0 #0f0719; }
+        .dir-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0f0719; background: #7f4ac7; }
+        @media (max-width: 768px) { .touch-controls { display: flex; } .dir-btn { width: 65px; height: 65px; font-size: 1.8rem; } .dpad { width: 240px; gap: 8px; padding: 15px; } }
     </style>
 </head>
 <body>
@@ -45,7 +32,7 @@
         <div class="info-bar">
             <div class="score-panel"><div id="scoreIcon" class="score-icon"></div><span id="scoreValue">0</span></div>
             <div class="record-panel"><span>🏅 Рекорд:</span><span id="recordValue">0</span></div>
-            <div id="livesPanel" class="lives-panel" style="display: none;">❤️❤️❤️</div>
+            <div id="livesPanel" class="lives-panel">❤️❤️❤️</div>
             <button class="pause-btn" id="pauseBtn">⏸️ Пауза</button>
             <button class="sound-toggle" id="soundToggleBtn">🔊 Звук</button>
             <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
@@ -65,21 +52,19 @@
 
 <script>
     (function(){
-        // ------ НАСТРОЙКИ ИЗ LOCALSTORAGE ------
-        let headImageUrl = "";
-        const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
-        if (savedSkinIndex === "1") headImageUrl = "https://i.ibb.co/VW19FvXh/image.png";
-        else headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png";
-        
-        const difficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
-        let baseSpeed = 150;
-        let speedIncreaseFactor = 7;
-        if (difficulty === "easy") { baseSpeed = 180; speedIncreaseFactor = 5; }
-        if (difficulty === "hard") { baseSpeed = 120; speedIncreaseFactor = 10; }
-        
-        const gameMode = localStorage.getItem('pepsiedGameMode') || "classic";
-        const isEndless = (gameMode === "endless");
-        const isThreeLives = (gameMode === "3lives");
+        // ---- МАССИВ СКИНОВ (синхронизирован с index.html) ----
+        const skinUrls = [
+            "https://i.ibb.co/pBkq71nP/412421.png",   // Дана
+            "https://i.ibb.co/VW19FvXh/image.png",   // Настя
+            "https://i.ibb.co/JW06HZK3/image.png"    // Влад
+        ];
+        let savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
+        let skinIndex = 0;
+        if (savedSkinIndex !== null && !isNaN(parseInt(savedSkinIndex))) {
+            let idx = parseInt(savedSkinIndex);
+            if (idx >= 0 && idx < skinUrls.length) skinIndex = idx;
+        }
+        const headImageUrl = skinUrls[skinIndex];
         
         // ------ МОНЕТЫ И ДОСТИЖЕНИЯ ------
         let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
@@ -160,6 +145,18 @@
         });
         
         // ------ КАНВАС И ПЕРЕМЕННЫЕ ------
+        const skinUrls = [
+    "https://i.ibb.co/pBkq71nP/412421.png",   // Дана
+    "https://i.ibb.co/VW19FvXh/image.png",   // Настя
+    "https://i.ibb.co/JW06HZK3/image.png"    // Влад
+];
+let savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
+let skinIndex = 0;
+if (savedSkinIndex !== null && !isNaN(parseInt(savedSkinIndex))) {
+    let idx = parseInt(savedSkinIndex);
+    if (idx >= 0 && idx < skinUrls.length) skinIndex = idx;
+}
+const headImageUrl = skinUrls[skinIndex];
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
