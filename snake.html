@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Пепсиед — Змейка</title>
     <style>
+        /* Все стили как в прошлый раз, без изменений */
         * { margin: 0; padding: 0; user-select: none; box-sizing: border-box; touch-action: manipulation; }
         body { background: #1a0b2e; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', 'Montserrat', system-ui, sans-serif; padding: 16px; margin: 0; }
         .game-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 650px; }
@@ -14,8 +15,8 @@
         .score-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-weight: bold; font-family: monospace; font-size: 1.5rem; color: #e9c8ff; border: 1px solid #b77eff; display: flex; align-items: center; gap: 8px; }
         .score-icon { width: 28px; height: 28px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
         .record-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-size: 1.2rem; color: #ffd966; border: 1px solid #b77eff; display: flex; align-items: center; gap: 6px; }
-        .restart-btn, .back-to-menu { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.9rem; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .restart-btn:active, .back-to-menu:active { transform: scale(0.97); background: #7f4ac7; }
+        .restart-btn, .back-to-menu, .music-toggle { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.9rem; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .restart-btn:active, .back-to-menu:active, .music-toggle:active { transform: scale(0.97); background: #7f4ac7; }
         .status { background: #000000aa; padding: 6px 16px; border-radius: 32px; font-size: 0.85rem; font-weight: 500; color: #f0e6b2; border: 1px solid #b77eff; text-align: center; }
         .touch-controls { display: none; justify-content: center; margin-top: 30px; width: 100%; }
         .dpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 80px; backdrop-filter: blur(4px); width: 280px; justify-items: center; align-items: center; }
@@ -34,6 +35,7 @@
             <div class="status" id="gameStatus">🐍 Игра активна</div>
             <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
             <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
+            <button class="music-toggle" id="musicToggleBtn">🔊 Музыка</button>
         </div>
     </div>
     <div class="touch-controls">
@@ -49,19 +51,64 @@
 
 <script>
     (function(){
-        // ---- ЗАГРУЗКА СКИНА ИЗ localStorage ----
+        // ---------- МУЗЫКА ----------
+        const bgMusic = new Audio();
+        // Используем надёжный источник с CORS (можно заменить на свой)
+        bgMusic.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        bgMusic.loop = true;
+        bgMusic.volume = 0.5;
+        let musicEnabled = localStorage.getItem('pepsiedMusic') !== 'false';
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        
+        function setMusic(enable) {
+            if (enable) {
+                // Пытаемся включить музыку
+                bgMusic.play().catch(e => {
+                    console.log("Автовоспроизведение заблокировано, музыка включится после касания");
+                    // Помечаем, что нужно включить при первом взаимодействии
+                    if (!window.musicWaitingForInteraction) {
+                        window.musicWaitingForInteraction = true;
+                        // Добавляем одноразовый обработчик на любое касание
+                        const unlockMusic = () => {
+                            if (musicEnabled) {
+                                bgMusic.play().catch(er => console.log("Не удалось включить музыку", er));
+                            }
+                            window.musicWaitingForInteraction = false;
+                            document.removeEventListener('click', unlockMusic);
+                            document.removeEventListener('touchstart', unlockMusic);
+                        };
+                        document.addEventListener('click', unlockMusic);
+                        document.addEventListener('touchstart', unlockMusic);
+                    }
+                });
+                musicToggleBtn.innerText = "🔊 Музыка";
+            } else {
+                bgMusic.pause();
+                musicToggleBtn.innerText = "🔇 Музыка";
+            }
+            localStorage.setItem('pepsiedMusic', enable);
+        }
+        
+        musicToggleBtn.addEventListener('click', () => {
+            musicEnabled = !musicEnabled;
+            setMusic(musicEnabled);
+        });
+        
+        // Включаем музыку, если разрешено
+        if (musicEnabled) {
+            setMusic(true);
+        } else {
+            setMusic(false);
+        }
+        
+        // ---------- ОСТАЛЬНАЯ ЛОГИКА ИГРЫ (такая же, как в рабочей версии) ----------
         let headImageUrl = "";
         const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
-        console.log("Сохранённый индекс скина:", savedSkinIndex);
-        
         if (savedSkinIndex === "1") {
-            headImageUrl = "https://i.ibb.co/VW19FvXh/image.png"; // Скин Настя
-            console.log("Выбран скин: Настя", headImageUrl);
+            headImageUrl = "https://i.ibb.co/VW19FvXh/image.png";
         } else {
-            headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png"; // Скин Дана (по умолчанию)
-            console.log("Выбран скин: Дана", headImageUrl);
+            headImageUrl = "https://i.ibb.co/pBkq71nP/412421.png";
         }
-        // ---- КОНЕЦ ----
         
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
@@ -72,8 +119,7 @@
         canvas.width = 600; canvas.height = 600;
         const GRID_SIZE = 20;
         const CELL_SIZE = 30;
-
-        // Личный рекорд
+        
         let personalBest = localStorage.getItem('pepsiedPersonalBest') ? parseInt(localStorage.getItem('pepsiedPersonalBest')) : 0;
         recordSpan.innerText = personalBest;
         function updatePersonalBest(score) {
@@ -83,58 +129,45 @@
                 recordSpan.innerText = personalBest;
             }
         }
-
-        // Фон травы
+        
         const grassBackground = new Image();
         grassBackground.src = "https://art.pixilart.com/6387674a5f8851d.png";
         let grassLoaded = false;
         grassBackground.onload = () => { grassLoaded = true; draw(); };
-        grassBackground.onerror = () => { grassLoaded = false; console.warn("Фон травы не загрузился"); };
-
-        // Иконка счёта
+        grassBackground.onerror = () => { grassLoaded = false; };
+        
         const scoreIconImg = new Image();
         scoreIconImg.src = "https://mir-s3-cdn-cf.behance.net/project_modules/1400/0e0066214215461.6753e7b69faf5.png";
         scoreIconImg.onload = () => {
             scoreIconElement.style.backgroundImage = `url('${scoreIconImg.src}')`;
             scoreIconElement.style.backgroundSize = 'contain';
         };
-        scoreIconImg.onerror = () => { scoreIconElement.innerText = '🍕'; console.warn("Иконка счёта не загрузилась"); };
-
-        // Еда
+        scoreIconImg.onerror = () => { scoreIconElement.innerText = '🍕'; };
+        
         const foodImage = new Image();
         foodImage.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
         let foodImageLoaded = false;
         foodImage.onload = () => { foodImageLoaded = true; draw(); };
-        foodImage.onerror = () => { foodImageLoaded = false; console.warn("Еда не загрузилась"); };
-
-        // Голова змеи (выбранный скин)
+        foodImage.onerror = () => { foodImageLoaded = false; };
+        
         const headImage = new Image();
         headImage.src = headImageUrl;
         let headImageLoaded = false;
-        headImage.onload = () => { 
-            headImageLoaded = true; 
-            console.log("Голова загружена успешно:", headImageUrl);
-            draw(); 
-        };
-        headImage.onerror = () => { 
-            headImageLoaded = false; 
-            console.error("НЕ УДАЛОСЬ ЗАГРУЗИТЬ ГОЛОВУ:", headImageUrl);
-            draw(); // всё равно рисуем, но будет запасной круг
-        };
-
-        // Хвост (логотип Pepsi)
+        headImage.onload = () => { headImageLoaded = true; draw(); };
+        headImage.onerror = () => { headImageLoaded = false; };
+        
         const tailImage = new Image();
         tailImage.src = "https://cdn-icons-png.flaticon.com/512/732/732064.png";
         let tailImageLoaded = false;
         tailImage.onload = () => { tailImageLoaded = true; draw(); };
-        tailImage.onerror = () => { tailImageLoaded = false; console.warn("Хвост не загрузился"); };
-
+        tailImage.onerror = () => { tailImageLoaded = false; };
+        
         let snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
         let food = {x:12,y:12};
         let direction = 'RIGHT', nextDirection = 'RIGHT';
         let score = 0, gameLoop = null, gameActive = true, speedMs = 150;
         const WIN_SCORE = 25;
-
+        
         function checkWin() {
             if (score >= WIN_SCORE) {
                 gameActive = false;
@@ -146,14 +179,14 @@
             }
             return false;
         }
-
+        
         function goToGameOver() {
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = null;
             updatePersonalBest(score);
             window.location.replace('gameover.html');
         }
-
+        
         function initGame() {
             snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
             direction = 'RIGHT'; nextDirection = 'RIGHT';
@@ -165,7 +198,7 @@
             gameLoop = setInterval(gameTick, speedMs);
             draw();
         }
-
+        
         function generateRandomFood() {
             const freeCells = [];
             for (let i=0; i<GRID_SIZE; i++) {
@@ -183,7 +216,7 @@
             }
             food = freeCells[Math.floor(Math.random()*freeCells.length)];
         }
-
+        
         function updateScoreUI() {
             scoreSpan.innerText = score;
             if (score > personalBest) {
@@ -192,7 +225,7 @@
                 recordSpan.innerText = personalBest;
             }
         }
-
+        
         function moveSnake() {
             if (!gameActive) return;
             direction = nextDirection;
@@ -234,25 +267,22 @@
             }
             draw();
         }
-
+        
         function gameTick() { if (gameActive) moveSnake(); }
-
+        
         function draw() {
-            // Фон
             if (grassLoaded && grassBackground.complete && grassBackground.naturalWidth>0) {
                 ctx.drawImage(grassBackground, 0, 0, canvas.width, canvas.height);
             } else {
                 ctx.fillStyle = "#2d1f3a";
                 ctx.fillRect(0,0,canvas.width,canvas.height);
             }
-            // Сетка
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.5;
             for (let i=0; i<=GRID_SIZE; i++) {
                 ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke();
             }
-            // Еда
             if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth>0) {
                 ctx.drawImage(foodImage, food.x*CELL_SIZE, food.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
             } else {
@@ -264,7 +294,6 @@
                 ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
                 ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
             }
-            // Змейка
             for (let i=0; i<snake.length; i++) {
                 const s = snake[i];
                 const x = s.x*CELL_SIZE, y = s.y*CELL_SIZE;
@@ -272,7 +301,6 @@
                 if (isHead && headImageLoaded && headImage.complete && headImage.naturalWidth>0) {
                     ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
                 } else if (isHead) {
-                    // Запасной вариант: фиолетовый круг с надписью "?"
                     const radius = CELL_SIZE*0.4;
                     ctx.beginPath();
                     ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI);
@@ -301,13 +329,13 @@
                 }
             }
         }
-
+        
         function changeDirection(newDir) {
             if (!gameActive) return;
             const opp = {'UP':'DOWN','DOWN':'UP','LEFT':'RIGHT','RIGHT':'LEFT'};
             if (opp[newDir] !== direction) nextDirection = newDir;
         }
-
+        
         window.addEventListener('keydown', (e) => {
             const k = e.key;
             if (k === 'ArrowUp') changeDirection('UP');
@@ -325,7 +353,7 @@
         document.getElementById('restartGameBtn').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('backToMenuBtn').addEventListener('click', () => window.location.href = 'index.html');
         document.getElementById('backToMenuBtn').addEventListener('touchstart', (e) => { e.preventDefault(); window.location.href = 'index.html'; });
-
+        
         initGame();
     })();
 </script>
