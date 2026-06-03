@@ -88,7 +88,7 @@
             justify-content: flex-end;
         }
 
-        .start-btn, .skin-btn {
+        .start-btn, .skin-btn, .achievements-btn {
             background: #6600ff;
             border: none;
             padding: 18px 50px;
@@ -103,20 +103,19 @@
             font-family: inherit;
         }
 
-        .skin-btn {
+        .skin-btn, .achievements-btn {
             background: #3a1a6e;
             font-size: 1.5rem;
             padding: 18px 35px;
         }
+        .achievements-btn {
+            background: #2a0e4e;
+        }
 
-        .start-btn:hover, .skin-btn:hover {
+        .start-btn:hover, .skin-btn:hover, .achievements-btn:hover {
             background: #7c1aff;
             transform: scale(1.02);
             box-shadow: 0 16px 30px rgba(102, 0, 255, 0.6);
-        }
-
-        .start-btn:active, .skin-btn:active {
-            transform: scale(0.98);
         }
 
         .dev-credit {
@@ -133,7 +132,7 @@
             z-index: 2;
         }
 
-        /* Модальное окно выбора скина */
+        /* Модальное окно выбора скина (оставляем как было) */
         .skin-modal {
             position: fixed;
             top: 0;
@@ -157,10 +156,6 @@
             border: 2px solid #a55eff;
             box-shadow: 0 20px 40px black;
         }
-        .skin-modal-content h2 {
-            color: white;
-            margin-bottom: 20px;
-        }
         .skin-preview {
             width: 150px;
             height: 150px;
@@ -172,7 +167,6 @@
             align-items: center;
             overflow: hidden;
             border: 3px solid transparent;
-            transition: border 0.2s;
         }
         .skin-preview.selected {
             border-color: #ffcc44;
@@ -197,10 +191,6 @@
             padding: 5px 20px;
             border-radius: 60px;
             cursor: pointer;
-            transition: 0.1s;
-        }
-        .nav-arrow:active {
-            transform: scale(0.9);
         }
         .skin-name {
             color: #ffd966;
@@ -226,28 +216,106 @@
             cursor: pointer;
         }
 
+        /* Модальное окно достижений */
+        .achievements-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .achievements-content {
+            background: #2c1a48;
+            border-radius: 60px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #a55eff;
+            color: white;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .achievements-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .achievement-item {
+            background: #1a0b2e;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 5px solid #ffcc44;
+        }
+        .achievement-icon {
+            font-size: 2rem;
+            width: 50px;
+            text-align: center;
+        }
+        .achievement-text {
+            flex: 1;
+        }
+        .achievement-title {
+            font-weight: bold;
+        }
+        .achievement-desc {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .achievement-locked {
+            opacity: 0.5;
+            border-left-color: #555;
+        }
+        .close-achievements {
+            background: #6600ff;
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 40px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Блок выбора сложности */
+        .difficulty-selector {
+            margin-top: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 60px;
+            display: inline-flex;
+            gap: 15px;
+            backdrop-filter: blur(4px);
+        }
+        .difficulty-selector label {
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
         @media (max-width: 850px) {
-            .right-content {
-                width: 70%;
-                padding: 30px 30px 30px 20px;
-            }
+            .right-content { width: 70%; padding: 30px; }
             .game-title { font-size: 3.5rem; }
             .description { font-size: 1.4rem; }
             .start-btn { font-size: 1.5rem; padding: 12px 32px; }
-            .skin-btn { font-size: 1.2rem; padding: 12px 25px; }
-            .dev-credit { right: 30px; bottom: 18px; font-size: 0.9rem; }
+            .skin-btn, .achievements-btn { font-size: 1.2rem; padding: 12px 25px; }
         }
-
         @media (max-width: 550px) {
-            .right-content {
-                width: 85%;
-                padding: 20px 20px 20px 15px;
-            }
-            .game-title { font-size: 2.5rem; letter-spacing: 3px; }
+            .right-content { width: 85%; padding: 20px; }
+            .game-title { font-size: 2.5rem; }
             .description { font-size: 1.2rem; }
-            .start-btn { font-size: 1.3rem; padding: 10px 26px; margin-top: 30px; }
-            .skin-btn { font-size: 1rem; padding: 10px 20px; }
-            .button-group { gap: 15px; margin-top: 35px; }
+            .start-btn { font-size: 1.3rem; padding: 10px 26px; }
+            .difficulty-selector { font-size: 0.8rem; padding: 5px 12px; gap: 8px; }
         }
     </style>
 </head>
@@ -261,18 +329,24 @@
         </div>
         <div class="button-group">
             <button class="start-btn" id="goToGameBtn">Начать играть</button>
-            <button class="skin-btn" id="openSkinBtn">👕 Выбрать скин</button>
+            <button class="skin-btn" id="openSkinBtn">👕 Скин</button>
+            <button class="achievements-btn" id="openAchievementsBtn">🏆 Достижения</button>
+        </div>
+        <div class="difficulty-selector">
+            <label><input type="radio" name="difficulty" value="easy"> 🟢 Лёгкий</label>
+            <label><input type="radio" name="difficulty" value="normal" checked> 🟡 Средний</label>
+            <label><input type="radio" name="difficulty" value="hard"> 🔴 Сложный</label>
         </div>
     </div>
     <div class="dev-credit">Разработчик Влад Spodzh</div>
 </div>
 
-<!-- Модальное окно выбора скина -->
+<!-- Модалка выбора скина -->
 <div id="skinModal" class="skin-modal">
     <div class="skin-modal-content">
         <h2>Выбери голову змеи</h2>
         <div class="skin-preview" id="skinPreviewContainer">
-            <img id="skinPreview" src="" alt="Скин">
+            <img id="skinPreview" src="">
         </div>
         <div class="skin-nav">
             <button class="nav-arrow" id="prevSkinBtn">◀</button>
@@ -284,86 +358,140 @@
     </div>
 </div>
 
+<!-- Модалка достижений -->
+<div id="achievementsModal" class="achievements-modal">
+    <div class="achievements-content">
+        <h2>🏆 Достижения</h2>
+        <div id="achievementsList"></div>
+        <button class="close-achievements" id="closeAchievementsBtn">Закрыть</button>
+    </div>
+</div>
+
 <script>
-    // Список скинов (имя + URL)
+    // Скины (как было)
     const skins = [
         { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png" },
         { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png" }
     ];
-    
     let currentSkinIndex = 0;
-    let tempSkinIndex = 0; // для навигации в модалке без сохранения
-    
-    // Загружаем сохранённый скин из localStorage
+    let tempSkinIndex = 0;
     const savedSkin = localStorage.getItem('pepsiedSkinIndex');
     if (savedSkin !== null && !isNaN(parseInt(savedSkin))) {
         let idx = parseInt(savedSkin);
-        if (idx >= 0 && idx < skins.length) {
-            currentSkinIndex = idx;
-        }
+        if (idx >= 0 && idx < skins.length) currentSkinIndex = idx;
     }
     tempSkinIndex = currentSkinIndex;
-    
-    // Элементы
-    const modal = document.getElementById('skinModal');
-    const openBtn = document.getElementById('openSkinBtn');
-    const closeBtn = document.getElementById('closeSkinModalBtn');
-    const prevBtn = document.getElementById('prevSkinBtn');
-    const nextBtn = document.getElementById('nextSkinBtn');
-    const selectBtn = document.getElementById('selectSkinBtn');
+
+    // Сохранение выбранной сложности
+    const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+    const savedDifficulty = localStorage.getItem('pepsiedDifficulty');
+    if (savedDifficulty) {
+        const radio = document.querySelector(`input[value="${savedDifficulty}"]`);
+        if (radio) radio.checked = true;
+    }
+    difficultyRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) localStorage.setItem('pepsiedDifficulty', radio.value);
+        });
+    });
+
+    // Достижения: список и их статус
+    let achievements = {
+        firstWin: false,      // первая победа (25 очков)
+        fiftyCollected: false, // собрать 50 банок всего (общий счёт за все игры)
+        speedDemon: false,     // прожить 30 секунд на максимальной скорости (скорость < 80 мс)
+        skinChanger: false,    // сменить скин хотя бы раз
+        bonusMaster: false     // съесть 3 бонуса за одну игру
+    };
+    // Загружаем достижения из localStorage
+    const savedAchievements = localStorage.getItem('pepsiedAchievements');
+    if (savedAchievements) {
+        try {
+            const loaded = JSON.parse(savedAchievements);
+            achievements = { ...achievements, ...loaded };
+        } catch(e) {}
+    }
+
+    // Функция сохранения достижений
+    function saveAchievements() {
+        localStorage.setItem('pepsiedAchievements', JSON.stringify(achievements));
+    }
+
+    // Отображение списка достижений в модалке
+    function renderAchievements() {
+        const container = document.getElementById('achievementsList');
+        const list = [
+            { id: 'firstWin', icon: '🏆', title: 'Первая победа', desc: 'Набери 25 очков в одной игре' },
+            { id: 'fiftyCollected', icon: '🥤', title: 'Коллекционер', desc: 'Собери 50 банок за все игры' },
+            { id: 'speedDemon', icon: '⚡', title: 'Скоростной демон', desc: 'Проживи 30 секунд на максимальной скорости' },
+            { id: 'skinChanger', icon: '🎨', title: 'Стилист', desc: 'Смени скин хотя бы раз' },
+            { id: 'bonusMaster', icon: '✨', title: 'Бонусный мастер', desc: 'Съешь 3 бонуса за одну игру' }
+        ];
+        container.innerHTML = list.map(ach => {
+            const unlocked = achievements[ach.id];
+            return `
+                <div class="achievement-item ${!unlocked ? 'achievement-locked' : ''}">
+                    <div class="achievement-icon">${ach.icon}</div>
+                    <div class="achievement-text">
+                        <div class="achievement-title">${ach.title} ${unlocked ? '✅' : '🔒'}</div>
+                        <div class="achievement-desc">${ach.desc}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Модалка скина (как раньше)
+    const modalSkin = document.getElementById('skinModal');
+    const openSkinBtn = document.getElementById('openSkinBtn');
+    const closeSkinBtn = document.getElementById('closeSkinModalBtn');
+    const prevSkinBtn = document.getElementById('prevSkinBtn');
+    const nextSkinBtn = document.getElementById('nextSkinBtn');
+    const selectSkinBtn = document.getElementById('selectSkinBtn');
     const skinPreview = document.getElementById('skinPreview');
     const skinNameSpan = document.getElementById('skinName');
     const previewContainer = document.getElementById('skinPreviewContainer');
-    
-    function updatePreview() {
+
+    function updateSkinPreview() {
         skinPreview.src = skins[tempSkinIndex].url;
         skinNameSpan.innerText = skins[tempSkinIndex].name;
-        // Подсветка, если временный индекс совпадает с сохранённым
-        if (tempSkinIndex === currentSkinIndex) {
-            previewContainer.classList.add('selected');
-        } else {
-            previewContainer.classList.remove('selected');
-        }
+        if (tempSkinIndex === currentSkinIndex) previewContainer.classList.add('selected');
+        else previewContainer.classList.remove('selected');
     }
-    
-    function openModal() {
-        // Синхронизируем временный индекс с текущим выбранным
-        tempSkinIndex = currentSkinIndex;
-        updatePreview();
-        modal.style.display = 'flex';
-    }
-    
-    function closeModal() {
-        modal.style.display = 'none';
-    }
-    
+    function openSkinModal() { tempSkinIndex = currentSkinIndex; updateSkinPreview(); modalSkin.style.display = 'flex'; }
+    function closeSkinModal() { modalSkin.style.display = 'none'; }
     function selectSkin() {
-        // Сохраняем выбранный скин
-        currentSkinIndex = tempSkinIndex;
-        localStorage.setItem('pepsiedSkinIndex', currentSkinIndex);
-        closeModal();
+        if (tempSkinIndex !== currentSkinIndex) {
+            currentSkinIndex = tempSkinIndex;
+            localStorage.setItem('pepsiedSkinIndex', currentSkinIndex);
+            // Достижение за смену скина
+            if (!achievements.skinChanger) {
+                achievements.skinChanger = true;
+                saveAchievements();
+                renderAchievements();
+            }
+        }
+        closeSkinModal();
     }
-    
-    openBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-    selectBtn.addEventListener('click', selectSkin);
-    
-    prevBtn.addEventListener('click', () => {
-        tempSkinIndex = (tempSkinIndex - 1 + skins.length) % skins.length;
-        updatePreview();
+    openSkinBtn.addEventListener('click', openSkinModal);
+    closeSkinBtn.addEventListener('click', closeSkinModal);
+    selectSkinBtn.addEventListener('click', selectSkin);
+    prevSkinBtn.addEventListener('click', () => { tempSkinIndex = (tempSkinIndex-1+skins.length)%skins.length; updateSkinPreview(); });
+    nextSkinBtn.addEventListener('click', () => { tempSkinIndex = (tempSkinIndex+1)%skins.length; updateSkinPreview(); });
+    modalSkin.addEventListener('click', (e) => { if(e.target === modalSkin) closeSkinModal(); });
+
+    // Модалка достижений
+    const achievementsModal = document.getElementById('achievementsModal');
+    const openAchievementsBtn = document.getElementById('openAchievementsBtn');
+    const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
+    openAchievementsBtn.addEventListener('click', () => {
+        renderAchievements();
+        achievementsModal.style.display = 'flex';
     });
-    
-    nextBtn.addEventListener('click', () => {
-        tempSkinIndex = (tempSkinIndex + 1) % skins.length;
-        updatePreview();
-    });
-    
-    // Закрыть по клику вне содержимого
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-    
-    // Переход в игру
+    closeAchievementsBtn.addEventListener('click', () => achievementsModal.style.display = 'none');
+    achievementsModal.addEventListener('click', (e) => { if(e.target === achievementsModal) achievementsModal.style.display = 'none'; });
+
+    // Переход в игру (передаём выбранную сложность и скин)
     document.getElementById('goToGameBtn').addEventListener('click', () => {
         window.location.href = 'snake.html';
     });
