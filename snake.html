@@ -14,7 +14,8 @@
         .score-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-weight: bold; font-family: monospace; font-size: 1.5rem; color: #e9c8ff; border: 1px solid #b77eff; display: flex; align-items: center; gap: 8px; }
         .score-icon { width: 28px; height: 28px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
         .record-panel { background: #000000aa; backdrop-filter: blur(4px); padding: 8px 18px; border-radius: 50px; font-size: 1.2rem; color: #ffd966; border: 1px solid #b77eff; display: flex; align-items: center; gap: 6px; }
-        .restart-btn, .back-to-menu, .pause-btn { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.9rem; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .lives-panel { background: #000000aa; padding: 5px 15px; border-radius: 50px; display: flex; gap: 5px; font-size: 1.3rem; }
+        .restart-btn, .back-to-menu, .pause-btn, .sound-toggle { background: #5f2e9e; border: none; color: white; font-weight: bold; font-size: 0.9rem; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .status { background: #000000aa; padding: 6px 16px; border-radius: 32px; font-size: 0.85rem; font-weight: 500; color: #f0e6b2; border: 1px solid #b77eff; text-align: center; }
         .touch-controls { display: none; justify-content: center; margin-top: 30px; width: 100%; }
         .dpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 80px; backdrop-filter: blur(4px); width: 280px; justify-items: center; align-items: center; }
@@ -30,8 +31,10 @@
         <div class="info-bar">
             <div class="score-panel"><div id="scoreIcon" class="score-icon"></div><span id="scoreValue">0</span></div>
             <div class="record-panel"><span>🏅 Рекорд:</span><span id="recordValue">0</span></div>
+            <div id="livesPanel" class="lives-panel">❤️❤️❤️</div>
             <div class="status" id="gameStatus">🐍 Игра активна</div>
             <button class="pause-btn" id="pauseBtn">⏸️ Пауза</button>
+            <button class="sound-toggle" id="soundToggleBtn">🔊 Звук</button>
             <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
             <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
         </div>
@@ -49,7 +52,7 @@
 
 <script>
     (function(){
-        // ---- ЗАГРУЗКА НАСТРОЕК ----
+        // ------ НАСТРОЙКИ ИЗ LOCALSTORAGE ------
         let headImageUrl = "";
         const savedSkinIndex = localStorage.getItem('pepsiedSkinIndex');
         if (savedSkinIndex === "1") headImageUrl = "https://i.ibb.co/VW19FvXh/image.png";
@@ -57,15 +60,20 @@
         
         const difficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
         let baseSpeed = 150;
-        let speedIncreaseFactor = 7; // на сколько уменьшается интервал при каждых 5 очках
+        let speedIncreaseFactor = 7;
         if (difficulty === "easy") { baseSpeed = 180; speedIncreaseFactor = 5; }
         if (difficulty === "hard") { baseSpeed = 120; speedIncreaseFactor = 10; }
         
-        // ---- ДОСТИЖЕНИЯ (загружаем из localStorage) ----
+        const gameMode = localStorage.getItem('pepsiedGameMode') || "classic";
+        const isEndless = (gameMode === "endless");
+        const isThreeLives = (gameMode === "3lives");
+        
+        // ------ МОНЕТЫ И ДОСТИЖЕНИЯ ------
+        let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
+        let totalCollected = localStorage.getItem('pepsiedTotalCollected') ? parseInt(localStorage.getItem('pepsiedTotalCollected')) : 0;
         let achievements = {
             firstWin: false, fiftyCollected: false, speedDemon: false, skinChanger: false, bonusMaster: false
         };
-        let totalCollected = localStorage.getItem('pepsiedTotalCollected') ? parseInt(localStorage.getItem('pepsiedTotalCollected')) : 0;
         const savedAchievements = localStorage.getItem('pepsiedAchievements');
         if (savedAchievements) {
             try { achievements = JSON.parse(savedAchievements); } catch(e) {}
@@ -73,22 +81,79 @@
         function saveAchievements() {
             localStorage.setItem('pepsiedAchievements', JSON.stringify(achievements));
         }
+        function addCoins(amount) {
+            coins += amount;
+            localStorage.setItem('pepsiedCoins', coins);
+        }
         function updateTotalCollected(amount) {
             totalCollected += amount;
             localStorage.setItem('pepsiedTotalCollected', totalCollected);
             if (!achievements.fiftyCollected && totalCollected >= 50) {
                 achievements.fiftyCollected = true;
                 saveAchievements();
+                addCoins(20); // бонус монет за достижение
             }
         }
         
-        // ---- КАНВАС И ПЕРЕМЕННЫЕ ----
+        // ------ ЗВУКИ (Web Audio API) ------
+        let audioCtx = null;
+        let soundEnabled = localStorage.getItem('pepsiedSound') !== 'false';
+        function initAudio() {
+            if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.5);
+            if (type === 'eat') {
+                oscillator.frequency.setValueAtTime(880, now);
+                oscillator.frequency.exponentialRampToValueAtTime(440, now + 0.1);
+                oscillator.type = 'sine';
+            } else if (type === 'bonus') {
+                oscillator.frequency.setValueAtTime(1200, now);
+                oscillator.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                oscillator.type = 'triangle';
+            } else if (type === 'death') {
+                oscillator.frequency.setValueAtTime(300, now);
+                oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                oscillator.type = 'sawtooth';
+            } else if (type === 'win') {
+                oscillator.frequency.setValueAtTime(800, now);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+                oscillator.type = 'square';
+            }
+            oscillator.start();
+            oscillator.stop(now + 0.3);
+        }
+        
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        soundToggleBtn.innerText = soundEnabled ? "🔊 Звук" : "🔇 Звук";
+        soundToggleBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('pepsiedSound', soundEnabled);
+            soundToggleBtn.innerText = soundEnabled ? "🔊 Звук" : "🔇 Звук";
+            if (soundEnabled && audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        });
+        
+        // ------ КАНВАС И ПЕРЕМЕННЫЕ ------
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
         const recordSpan = document.getElementById('recordValue');
         const gameStatusDiv = document.getElementById('gameStatus');
         const scoreIconElement = document.getElementById('scoreIcon');
+        const livesPanel = document.getElementById('livesPanel');
         canvas.width = 600; canvas.height = 600;
         const GRID_SIZE = 20;
         const CELL_SIZE = 30;
@@ -100,10 +165,11 @@
                 personalBest = score;
                 localStorage.setItem('pepsiedPersonalBest', personalBest);
                 recordSpan.innerText = personalBest;
+                addCoins(5); // бонус за рекорд
             }
         }
         
-        // ---- ЗАГРУЗКА КАРТИНОК ----
+        // ------ КАРТИНКИ (без изменений) ------
         const grassBackground = new Image();
         grassBackground.src = "https://art.pixilart.com/6387674a5f8851d.png";
         let grassLoaded = false;
@@ -112,7 +178,6 @@
         const scoreIconImg = new Image();
         scoreIconImg.src = "https://mir-s3-cdn-cf.behance.net/project_modules/1400/0e0066214215461.6753e7b69faf5.png";
         scoreIconImg.onload = () => { scoreIconElement.style.backgroundImage = `url('${scoreIconImg.src}')`; scoreIconElement.style.backgroundSize = 'contain'; };
-        scoreIconImg.onerror = () => { scoreIconElement.innerText = '🍕'; };
         
         const foodImage = new Image();
         foodImage.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
@@ -129,14 +194,12 @@
         let tailImageLoaded = false;
         tailImage.onload = () => { tailImageLoaded = true; draw(); };
         
-        // ---- БОНУСЫ ----
-        let bonus = null; // { x, y, type, endTime, active }
+        // ------ БОНУСЫ (без изменений) ------
+        let bonus = null;
         let activeEffects = { speedMult: 1, scoreMult: 1, effectEndTime: 0 };
-        let bonusEatenThisGame = 0; // для достижения bonusMaster
-        
+        let bonusEatenThisGame = 0;
         function spawnBonus() {
             if (bonus && bonus.active) return;
-            // случайный шанс появления ~2% каждый тик (вызывается в moveSnake)
             if (Math.random() > 0.02) return;
             const freeCells = [];
             for (let i=0; i<GRID_SIZE; i++) {
@@ -148,46 +211,27 @@
             }
             if (freeCells.length===0) return;
             const pos = freeCells[Math.floor(Math.random()*freeCells.length)];
-            const type = Math.floor(Math.random()*3); // 0: ускорение, 1: замедление, 2: удвоение очков
-            bonus = {
-                x: pos.x, y: pos.y, type: type,
-                active: true, endTime: Date.now() + 5000 // живёт 5 секунд
-            };
+            const type = Math.floor(Math.random()*3);
+            bonus = { x: pos.x, y: pos.y, type: type, active: true, endTime: Date.now() + 5000 };
         }
-        
         function eatBonus(bonusItem) {
             bonusEatenThisGame++;
             if (!achievements.bonusMaster && bonusEatenThisGame >= 3) {
                 achievements.bonusMaster = true;
                 saveAchievements();
+                addCoins(15);
             }
+            playSound('bonus');
             switch(bonusItem.type) {
-                case 0: // ускорение (скорость * 1.5)
-                    activeEffects.speedMult = 1.5;
-                    activeEffects.effectEndTime = Date.now() + 5000;
-                    if (gameLoop) {
-                        clearInterval(gameLoop);
-                        gameLoop = setInterval(gameTick, speedMs / activeEffects.speedMult);
-                    }
-                    break;
-                case 1: // замедление (скорость * 0.7)
-                    activeEffects.speedMult = 0.7;
-                    activeEffects.effectEndTime = Date.now() + 5000;
-                    if (gameLoop) {
-                        clearInterval(gameLoop);
-                        gameLoop = setInterval(gameTick, speedMs / activeEffects.speedMult);
-                    }
-                    break;
-                case 2: // удвоение очков на 5 секунд
-                    activeEffects.scoreMult = 2;
-                    activeEffects.effectEndTime = Date.now() + 5000;
-                    break;
+                case 0: activeEffects.speedMult = 1.5; activeEffects.effectEndTime = Date.now()+5000; if(gameLoop) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs/activeEffects.speedMult); } break;
+                case 1: activeEffects.speedMult = 0.7; activeEffects.effectEndTime = Date.now()+5000; if(gameLoop) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs/activeEffects.speedMult); } break;
+                case 2: activeEffects.scoreMult = 2; activeEffects.effectEndTime = Date.now()+5000; break;
             }
             bonus.active = false;
             bonus = null;
         }
         
-        // ---- ПАУЗА ----
+        // ------ ПАУЗА ------
         let paused = false;
         const pauseBtn = document.getElementById('pauseBtn');
         function togglePause() {
@@ -206,21 +250,14 @@
             draw();
         }
         pauseBtn.addEventListener('click', togglePause);
-        canvas.addEventListener('click', (e) => {
-            // чтобы не мешать управлению, но можно добавить паузу по клику
-            // по желанию
-        });
         
-        // ---- АНИМАЦИЯ ПРИ ПОЕДАНИИ (частицы) ----
+        // ------ АНИМАЦИЯ ЧАСТИЦ ------
         let particles = [];
         function addParticles(x, y) {
             for (let i=0; i<8; i++) {
                 particles.push({
-                    x: x + CELL_SIZE/2,
-                    y: y + CELL_SIZE/2,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 20
+                    x: x + CELL_SIZE/2, y: y + CELL_SIZE/2,
+                    vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4, life: 20
                 });
             }
         }
@@ -229,50 +266,97 @@
                 particles[i].x += particles[i].vx;
                 particles[i].y += particles[i].vy;
                 particles[i].life--;
-                if (particles[i].life <= 0) {
-                    particles.splice(i,1);
-                    i--;
-                }
+                if (particles[i].life <= 0) { particles.splice(i,1); i--; }
             }
         }
         function drawParticles() {
             for (let p of particles) {
-                ctx.fillStyle = `rgba(255, 200, 100, ${p.life/20})`;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
-                ctx.fill();
+                ctx.fillStyle = `rgba(255,200,100,${p.life/20})`;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
             }
         }
         
-        // ---- ИГРОВЫЕ ПЕРЕМЕННЫЕ ----
+        // ------ ИГРОВЫЕ ПЕРЕМЕННЫЕ (3 жизни) ------
         let snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
         let food = {x:12,y:12};
         let direction = 'RIGHT', nextDirection = 'RIGHT';
         let score = 0, gameLoop = null, gameActive = true, speedMs = baseSpeed;
-        const WIN_SCORE = 25;
+        let lives = 3;
+        let winScore = isEndless ? Infinity : 25;
+        
+        function updateLivesDisplay() {
+            if (isThreeLives) {
+                let hearts = '';
+                for (let i=0; i<lives; i++) hearts += '❤️';
+                for (let i=lives; i<3; i++) hearts += '🖤';
+                livesPanel.innerHTML = hearts;
+                livesPanel.style.display = 'flex';
+            } else {
+                livesPanel.style.display = 'none';
+            }
+        }
+        updateLivesDisplay();
         
         function checkWin() {
-            if (score >= WIN_SCORE) {
+            if (!isEndless && score >= winScore) {
                 gameActive = false;
-                if (gameLoop) clearInterval(gameLoop);
-                gameLoop = null;
+                if (gameLoop) clearInterval(gameLoop); gameLoop = null;
                 updatePersonalBest(score);
                 if (!achievements.firstWin) {
                     achievements.firstWin = true;
                     saveAchievements();
+                    addCoins(30);
                 }
+                playSound('win');
                 window.location.replace('win.html');
                 return true;
             }
             return false;
         }
         
-        function goToGameOver() {
+        function resetSnakeAfterLifeLoss() {
+            // сброс змейки до начального состояния, счёт и бонусы сохраняются
+            snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+            direction = 'RIGHT'; nextDirection = 'RIGHT';
+            // сохраняем счёт и скорость
+            gameActive = true;
+            speedMs = Math.max(70, baseSpeed - Math.floor(score/5)*speedIncreaseFactor);
+            activeEffects = { speedMult: 1, scoreMult: 1, effectEndTime: 0 };
+            bonus = null;
+            // генерируем новую еду, не на змейке
+            generateRandomFood();
             if (gameLoop) clearInterval(gameLoop);
-            gameLoop = null;
-            updatePersonalBest(score);
-            updateTotalCollected(score);
-            window.location.replace('gameover.html');
+            gameLoop = setInterval(gameTick, speedMs / (activeEffects.speedMult || 1));
+            draw();
+        }
+        
+        function goToGameOver() {
+            if (isThreeLives && lives > 0) {
+                lives--;
+                updateLivesDisplay();
+                if (lives === 0) {
+                    gameActive = false;
+                    if (gameLoop) clearInterval(gameLoop); gameLoop = null;
+                    updatePersonalBest(score);
+                    updateTotalCollected(score);
+                    playSound('death');
+                    window.location.replace('gameover.html');
+                } else {
+                    // воскрешение
+                    playSound('death');
+                    resetSnakeAfterLifeLoss();
+                    gameStatusDiv.innerText = `❤️ Осталось жизней: ${lives}`;
+                    setTimeout(() => { if (gameActive) gameStatusDiv.innerText = '🐍 Игра активна'; }, 1500);
+                }
+                return;
+            } else {
+                gameActive = false;
+                if (gameLoop) clearInterval(gameLoop); gameLoop = null;
+                updatePersonalBest(score);
+                updateTotalCollected(score);
+                playSound('death');
+                window.location.replace('gameover.html');
+            }
         }
         
         function initGame() {
@@ -287,6 +371,8 @@
             paused = false;
             gameStatusDiv.innerText = '🐍 Игра активна';
             pauseBtn.innerText = '⏸️ Пауза';
+            if (isThreeLives) lives = 3;
+            updateLivesDisplay();
             generateRandomFood();
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(gameTick, speedMs);
@@ -317,15 +403,12 @@
                 personalBest = score;
                 localStorage.setItem('pepsiedPersonalBest', personalBest);
                 recordSpan.innerText = personalBest;
+                addCoins(5);
             }
-            // Достижение скоростного демона: если скорость уже низкая и игра активна
-            if (!achievements.speedDemon && speedMs <= 80 && gameActive) {
-                // проверим, что прошло 30 секунд на такой скорости (можно упрощённо: при каждом апдейте)
-                // Для простоты: если игрок набрал 20+ очков и скорость <=80, считаем достижение
-                if (score >= 15) {
-                    achievements.speedDemon = true;
-                    saveAchievements();
-                }
+            if (!achievements.speedDemon && speedMs <= 80 && score >= 15) {
+                achievements.speedDemon = true;
+                saveAchievements();
+                addCoins(15);
             }
         }
         
@@ -340,7 +423,6 @@
                 case 'DOWN': newHead.y++; break;
             }
             const willEat = (newHead.x===food.x && newHead.y===food.y);
-            // Проверка бонуса
             if (bonus && bonus.active && newHead.x===bonus.x && newHead.y===bonus.y) {
                 eatBonus(bonus);
                 addParticles(bonus.x*CELL_SIZE, bonus.y*CELL_SIZE);
@@ -352,6 +434,7 @@
                 score += addScore;
                 updateScoreUI();
                 addParticles(food.x*CELL_SIZE, food.y*CELL_SIZE);
+                playSound('eat');
                 if (checkWin()) return;
                 if (score % 5 === 0 && speedMs > 70) {
                     speedMs = Math.max(70, speedMs - speedIncreaseFactor);
@@ -365,17 +448,10 @@
                 snake.unshift(newHead);
                 snake.pop();
             }
-            // Бонус появляется после движения
             if (!bonus || !bonus.active) spawnBonus();
-            // Убираем бонус по таймауту
-            if (bonus && bonus.active && Date.now() > bonus.endTime) {
-                bonus.active = false;
-                bonus = null;
-            }
-            // Обновление эффектов
+            if (bonus && bonus.active && Date.now() > bonus.endTime) { bonus.active = false; bonus = null; }
             if (activeEffects.effectEndTime && Date.now() > activeEffects.effectEndTime) {
-                activeEffects.speedMult = 1;
-                activeEffects.scoreMult = 1;
+                activeEffects.speedMult = 1; activeEffects.scoreMult = 1;
                 if (!paused && gameActive) {
                     clearInterval(gameLoop);
                     gameLoop = setInterval(gameTick, speedMs);
@@ -383,13 +459,11 @@
             }
             const head = snake[0];
             if (head.x<0 || head.x>=GRID_SIZE || head.y<0 || head.y>=GRID_SIZE) {
-                gameActive=false;
                 goToGameOver();
                 return;
             }
             for (let i=1; i<snake.length; i++) {
                 if (snake[i].x===head.x && snake[i].y===head.y) {
-                    gameActive=false;
                     goToGameOver();
                     return;
                 }
@@ -400,46 +474,30 @@
         function gameTick() { moveSnake(); updateParticles(); }
         
         function draw() {
-            // фон
             if (grassLoaded && grassBackground.complete && grassBackground.naturalWidth>0) {
                 ctx.drawImage(grassBackground, 0, 0, canvas.width, canvas.height);
             } else {
                 ctx.fillStyle = "#2d1f3a";
                 ctx.fillRect(0,0,canvas.width,canvas.height);
             }
-            // сетка
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
             for (let i=0; i<=GRID_SIZE; i++) {
                 ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke();
             }
-            // еда
             if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth>0) {
                 ctx.drawImage(foodImage, food.x*CELL_SIZE, food.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
             } else {
                 ctx.fillStyle = "#E31837";
-                ctx.beginPath();
-                ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, 2*Math.PI);
-                ctx.fill();
-                ctx.fillStyle="white";
-                ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
-                ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
+                ctx.beginPath(); ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, 2*Math.PI); ctx.fill();
+                ctx.fillStyle="white"; ctx.font = `bold ${CELL_SIZE*0.6}px monospace`; ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
             }
-            // бонус
             if (bonus && bonus.active) {
                 const b = bonus;
-                if (b.type === 0) ctx.fillStyle = "#00ffaa";
-                else if (b.type === 1) ctx.fillStyle = "#66ccff";
-                else ctx.fillStyle = "#ffcc44";
-                ctx.beginPath();
-                ctx.arc(b.x*CELL_SIZE+CELL_SIZE/2, b.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, 0, 2*Math.PI);
-                ctx.fill();
-                ctx.fillStyle = "white";
-                ctx.font = `bold ${CELL_SIZE*0.5}px monospace`;
-                ctx.fillText(b.type===0?"⚡":(b.type===1?"🐢":"2x"), b.x*CELL_SIZE+CELL_SIZE*0.35, b.y*CELL_SIZE+CELL_SIZE*0.7);
+                ctx.fillStyle = b.type===0?"#00ffaa":(b.type===1?"#66ccff":"#ffcc44");
+                ctx.beginPath(); ctx.arc(b.x*CELL_SIZE+CELL_SIZE/2, b.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, 0, 2*Math.PI); ctx.fill();
+                ctx.fillStyle = "white"; ctx.font = `bold ${CELL_SIZE*0.5}px monospace`; ctx.fillText(b.type===0?"⚡":(b.type===1?"🐢":"2x"), b.x*CELL_SIZE+CELL_SIZE*0.35, b.y*CELL_SIZE+CELL_SIZE*0.7);
             }
-            // змейка
             for (let i=0; i<snake.length; i++) {
                 const s = snake[i];
                 const x = s.x*CELL_SIZE, y = s.y*CELL_SIZE;
@@ -448,41 +506,25 @@
                     ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
                 } else if (isHead) {
                     const radius = CELL_SIZE*0.4;
-                    ctx.beginPath();
-                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI);
-                    ctx.fillStyle = "#bc7eff";
-                    ctx.fill();
-                    ctx.fillStyle = "white";
-                    ctx.font = `bold ${CELL_SIZE*0.5}px monospace`;
-                    ctx.fillText("?", x+CELL_SIZE/2-6, y+CELL_SIZE/2+8);
+                    ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI); ctx.fillStyle = "#bc7eff"; ctx.fill();
+                    ctx.fillStyle = "white"; ctx.font = `bold ${CELL_SIZE*0.5}px monospace`; ctx.fillText("?", x+CELL_SIZE/2-6, y+CELL_SIZE/2+8);
                 } else if (!isHead && tailImageLoaded && tailImage.complete && tailImage.naturalWidth>0) {
                     ctx.drawImage(tailImage, x, y, CELL_SIZE, CELL_SIZE);
                 } else {
                     const radius = CELL_SIZE*0.4;
-                    ctx.beginPath();
-                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI);
-                    ctx.fillStyle = "#6a3e9a";
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, 2*Math.PI);
-                    ctx.fillStyle = "#9a5fdf";
-                    ctx.fill();
-                    ctx.fillStyle = "#e8d5ff";
-                    ctx.font = `${CELL_SIZE*0.55}px "Segoe UI Emoji"`;
-                    ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6);
+                    ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, 2*Math.PI); ctx.fillStyle = "#6a3e9a"; ctx.fill();
+                    ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, 2*Math.PI); ctx.fillStyle = "#9a5fdf"; ctx.fill();
+                    ctx.fillStyle = "#e8d5ff"; ctx.font = `${CELL_SIZE*0.55}px "Segoe UI Emoji"`; ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6);
                 }
             }
             drawParticles();
             if (paused) {
                 ctx.fillStyle = "rgba(0,0,0,0.7)";
                 ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.font = "bold 30px system-ui";
-                ctx.fillStyle = "white";
-                ctx.fillText("ПАУЗА", canvas.width/2-70, canvas.height/2);
+                ctx.font = "bold 30px system-ui"; ctx.fillStyle = "white"; ctx.fillText("ПАУЗА", canvas.width/2-70, canvas.height/2);
             }
         }
         
-        // Управление
         function changeDirection(newDir) {
             if (!gameActive || paused) return;
             const opp = {'UP':'DOWN','DOWN':'UP','LEFT':'RIGHT','RIGHT':'LEFT'};
