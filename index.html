@@ -88,7 +88,7 @@
             justify-content: flex-end;
         }
 
-        .start-btn, .skin-btn, .achievements-btn {
+        .start-btn, .skin-btn, .achievements-btn, .shop-btn, .mode-btn {
             background: #6600ff;
             border: none;
             padding: 18px 50px;
@@ -103,61 +103,68 @@
             font-family: inherit;
         }
 
-        .skin-btn, .achievements-btn {
+        .skin-btn, .achievements-btn, .shop-btn, .mode-btn {
             background: #3a1a6e;
-            font-size: 1.5rem;
-            padding: 18px 35px;
+            font-size: 1.3rem;
+            padding: 12px 25px;
         }
-        .achievements-btn {
-            background: #2a0e4e;
-        }
+        .achievements-btn { background: #2a0e4e; }
+        .shop-btn { background: #4a1e7a; }
+        .mode-btn { background: #5a2e8a; }
 
-        .start-btn:hover, .skin-btn:hover, .achievements-btn:hover {
+        .start-btn:hover, .skin-btn:hover, .achievements-btn:hover, .shop-btn:hover, .mode-btn:hover {
             background: #7c1aff;
             transform: scale(1.02);
             box-shadow: 0 16px 30px rgba(102, 0, 255, 0.6);
         }
 
-        /* Стильный выбор сложности */
-        .difficulty-selector {
-            margin-top: 30px;
-            display: flex;
-            gap: 20px;
-            justify-content: flex-end;
-            background: rgba(0,0,0,0.4);
-            padding: 15px 25px;
-            border-radius: 80px;
+        /* Блок монет */
+        .coin-display {
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(8px);
-        }
-        .difficulty-card {
-            background: rgba(20,10,40,0.8);
             border-radius: 60px;
-            padding: 10px 24px;
+            padding: 8px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffcc44;
+        }
+        .coin-icon {
+            font-size: 1.8rem;
+        }
+
+        /* Режимы */
+        .modes-panel {
             display: flex;
-            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .mode-switch {
+            background: rgba(0,0,0,0.5);
+            border-radius: 60px;
+            padding: 5px 15px;
+            display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-            min-width: 100px;
+            border: 1px solid #a55eff;
+            transition: 0.1s;
         }
-        .difficulty-card.selected {
+        .mode-switch.selected {
+            background: #6600ff;
             border-color: #ffcc44;
-            background: rgba(102,0,255,0.5);
-            box-shadow: 0 0 15px #ffcc44;
         }
-        .difficulty-icon {
-            font-size: 2.5rem;
+        .mode-icon {
+            font-size: 1.3rem;
         }
-        .difficulty-label {
+        .mode-label {
             color: white;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        .difficulty-desc {
-            font-size: 0.7rem;
-            color: #ccc;
+            font-size: 0.9rem;
         }
 
         .dev-credit {
@@ -174,8 +181,8 @@
             z-index: 2;
         }
 
-        /* Модальные окна (скин и достижения) остаются как были */
-        .skin-modal, .achievements-modal {
+        /* Модальные окна */
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -188,7 +195,7 @@
             align-items: center;
             z-index: 1000;
         }
-        .skin-modal-content, .achievements-content {
+        .modal-content {
             background: #2c1a48;
             border-radius: 60px;
             padding: 30px;
@@ -244,7 +251,7 @@
             font-size: 1.2rem;
             margin-bottom: 20px;
         }
-        .select-skin-btn, .close-achievements {
+        .select-skin-btn, .close-modal-btn, .buy-btn {
             background: #6600ff;
             border: none;
             padding: 12px 30px;
@@ -255,13 +262,12 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .close-skin-modal {
+        .close-modal-btn {
             background: none;
             border: none;
             color: #aaa;
             font-size: 1rem;
             margin-top: 15px;
-            cursor: pointer;
         }
         .achievement-item {
             background: #1a0b2e;
@@ -272,6 +278,7 @@
             align-items: center;
             gap: 15px;
             border-left: 5px solid #ffcc44;
+            flex-wrap: wrap;
         }
         .achievement-locked {
             opacity: 0.5;
@@ -285,24 +292,34 @@
             flex: 1;
             text-align: left;
         }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #ffcc44;
+            width: 0%;
+        }
 
         @media (max-width: 850px) {
             .right-content { width: 70%; padding: 30px; }
             .game-title { font-size: 3.5rem; }
             .description { font-size: 1.4rem; }
             .start-btn { font-size: 1.5rem; padding: 12px 32px; }
-            .skin-btn, .achievements-btn { font-size: 1.2rem; padding: 12px 25px; }
-            .difficulty-card { padding: 6px 16px; min-width: 70px; }
-            .difficulty-icon { font-size: 2rem; }
-            .difficulty-label { font-size: 0.9rem; }
+            .skin-btn, .achievements-btn, .shop-btn, .mode-btn { font-size: 1rem; padding: 8px 18px; }
+            .coin-display { font-size: 1rem; }
         }
         @media (max-width: 550px) {
             .right-content { width: 85%; padding: 20px; }
             .game-title { font-size: 2.5rem; }
             .description { font-size: 1.2rem; }
-            .start-btn { font-size: 1.3rem; padding: 10px 26px; }
-            .difficulty-selector { gap: 10px; padding: 10px 15px; }
-            .difficulty-card { padding: 5px 12px; min-width: 60px; }
+            .modes-panel { gap: 8px; }
+            .mode-switch { padding: 3px 10px; }
         }
     </style>
 </head>
@@ -314,35 +331,42 @@
             Донится любит пепси.<br>
             Помоги ей съесть все пепси!!!
         </div>
+
+        <!-- Отображение монет -->
+        <div class="coin-display">
+            <span class="coin-icon">🪙</span>
+            <span id="coinAmount">0</span>
+        </div>
+
         <div class="button-group">
             <button class="start-btn" id="goToGameBtn">Начать играть</button>
             <button class="skin-btn" id="openSkinBtn">👕 Скин</button>
+            <button class="shop-btn" id="openShopBtn">🛒 Магазин</button>
             <button class="achievements-btn" id="openAchievementsBtn">🏆 Достижения</button>
         </div>
-        <div class="difficulty-selector">
-            <div class="difficulty-card" data-diff="easy">
-                <div class="difficulty-icon">🌿</div>
-                <div class="difficulty-label">Лёгкий</div>
-                <div class="difficulty-desc">медленнее</div>
+
+        <!-- Панель выбора режимов -->
+        <div class="modes-panel">
+            <div class="mode-switch" data-mode="classic">
+                <span class="mode-icon">🎮</span>
+                <span class="mode-label">Классический</span>
             </div>
-            <div class="difficulty-card selected" data-diff="normal">
-                <div class="difficulty-icon">⚡</div>
-                <div class="difficulty-label">Средний</div>
-                <div class="difficulty-desc">нормально</div>
+            <div class="mode-switch" data-mode="endless">
+                <span class="mode-icon">♾️</span>
+                <span class="mode-label">Бесконечность</span>
             </div>
-            <div class="difficulty-card" data-diff="hard">
-                <div class="difficulty-icon">🔥</div>
-                <div class="difficulty-label">Сложный</div>
-                <div class="difficulty-desc">быстрее</div>
+            <div class="mode-switch" data-mode="3lives">
+                <span class="mode-icon">❤️❤️❤️</span>
+                <span class="mode-label">3 жизни</span>
             </div>
         </div>
     </div>
     <div class="dev-credit">Разработчик Влад Spodzh</div>
 </div>
 
-<!-- Модалка выбора скина (код тот же) -->
-<div id="skinModal" class="skin-modal">
-    <div class="skin-modal-content">
+<!-- Модалка выбора скина (старая) -->
+<div id="skinModal" class="modal">
+    <div class="modal-content">
         <h2>Выбери голову змеи</h2>
         <div class="skin-preview" id="skinPreviewContainer">
             <img id="skinPreview" src="">
@@ -353,57 +377,75 @@
         </div>
         <div class="skin-name" id="skinName">Дана</div>
         <button class="select-skin-btn" id="selectSkinBtn">Выбрать</button>
-        <button class="close-skin-modal" id="closeSkinModalBtn">Закрыть</button>
+        <button class="close-modal-btn" id="closeSkinModalBtn">Закрыть</button>
     </div>
 </div>
 
-<!-- Модалка достижений -->
-<div id="achievementsModal" class="achievements-modal">
-    <div class="achievements-content">
+<!-- Модалка магазина -->
+<div id="shopModal" class="modal">
+    <div class="modal-content">
+        <h2>🛒 Магазин скинов</h2>
+        <div style="margin: 20px 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #1a0b2e; padding: 15px; border-radius: 40px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="https://i.ibb.co/VW19FvXh/image.png" style="width: 60px; height: 60px; object-fit: contain;">
+                    <div>
+                        <div>Скин "Настя"</div>
+                        <div style="font-size: 0.8rem;">💎 Уникальная голова</div>
+                    </div>
+                </div>
+                <div>
+                    <span id="shopSkinPrice">50</span> 🪙
+                    <button class="buy-btn" id="buySkinBtn" style="padding: 5px 15px; font-size: 1rem; margin-left: 10px;">Купить</button>
+                </div>
+            </div>
+            <div id="shopMessage" style="font-size: 0.8rem; margin-top: 10px;"></div>
+        </div>
+        <button class="close-modal-btn" id="closeShopModalBtn">Закрыть</button>
+    </div>
+</div>
+
+<!-- Модалка достижений с прогрессом -->
+<div id="achievementsModal" class="modal">
+    <div class="modal-content achievements-content">
         <h2>🏆 Достижения</h2>
         <div id="achievementsList"></div>
-        <button class="close-achievements" id="closeAchievementsBtn">Закрыть</button>
+        <button class="close-modal-btn" id="closeAchievementsBtn">Закрыть</button>
     </div>
 </div>
 
 <script>
-    // --- СКИНЫ (без изменений) ---
+    // ------ СКИНЫ ------
     const skins = [
-        { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png" },
-        { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png" }
+        { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png", price: 0 },
+        { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png", price: 50 }
     ];
+    let ownedSkins = JSON.parse(localStorage.getItem('pepsiedOwnedSkins')) || [0]; // по умолчанию Дана куплен
     let currentSkinIndex = 0;
     let tempSkinIndex = 0;
     const savedSkin = localStorage.getItem('pepsiedSkinIndex');
     if (savedSkin !== null && !isNaN(parseInt(savedSkin))) {
         let idx = parseInt(savedSkin);
-        if (idx >= 0 && idx < skins.length) currentSkinIndex = idx;
+        if (idx >= 0 && idx < skins.length && ownedSkins.includes(idx)) currentSkinIndex = idx;
     }
     tempSkinIndex = currentSkinIndex;
 
-    // --- ВЫБОР СЛОЖНОСТИ (иконки) ---
-    const diffCards = document.querySelectorAll('.difficulty-card');
-    let currentDifficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
-    // Устанавливаем активную карточку
-    diffCards.forEach(card => {
-        const val = card.getAttribute('data-diff');
-        if (val === currentDifficulty) {
-            card.classList.add('selected');
-        } else {
-            card.classList.remove('selected');
-        }
-        card.addEventListener('click', () => {
-            diffCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            currentDifficulty = card.getAttribute('data-diff');
-            localStorage.setItem('pepsiedDifficulty', currentDifficulty);
-        });
-    });
+    // ------ МОНЕТЫ ------
+    let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
+    function updateCoinDisplay() {
+        document.getElementById('coinAmount').innerText = coins;
+    }
+    updateCoinDisplay();
 
-    // --- ДОСТИЖЕНИЯ ---
+    // ------ ДОСТИЖЕНИЯ С ПРОГРЕССОМ ------
     let achievements = {
-        firstWin: false, fiftyCollected: false, speedDemon: false, skinChanger: false, bonusMaster: false
+        firstWin: false,
+        fiftyCollected: false,
+        speedDemon: false,
+        skinChanger: false,
+        bonusMaster: false
     };
+    let totalCollected = localStorage.getItem('pepsiedTotalCollected') ? parseInt(localStorage.getItem('pepsiedTotalCollected')) : 0;
     const savedAchievements = localStorage.getItem('pepsiedAchievements');
     if (savedAchievements) {
         try { achievements = JSON.parse(savedAchievements); } catch(e) {}
@@ -411,30 +453,98 @@
     function saveAchievements() {
         localStorage.setItem('pepsiedAchievements', JSON.stringify(achievements));
     }
+
     function renderAchievements() {
         const container = document.getElementById('achievementsList');
+        // Прогресс fiftyCollected: totalCollected / 50
+        const fiftyProgress = Math.min(100, (totalCollected / 50) * 100);
+        // Прогресс bonusMaster: нужно 3 бонуса за игру, храним отдельно? пока просто статус
         const list = [
-            { id: 'firstWin', icon: '🏆', title: 'Первая победа', desc: 'Набери 25 очков в одной игре' },
-            { id: 'fiftyCollected', icon: '🥤', title: 'Коллекционер', desc: 'Собери 50 банок за все игры' },
-            { id: 'speedDemon', icon: '⚡', title: 'Скоростной демон', desc: 'Проживи 30 секунд на максимальной скорости' },
-            { id: 'skinChanger', icon: '🎨', title: 'Стилист', desc: 'Смени скин хотя бы раз' },
-            { id: 'bonusMaster', icon: '✨', title: 'Бонусный мастер', desc: 'Съешь 3 бонуса за одну игру' }
+            { id: 'firstWin', icon: '🏆', title: 'Первая победа', desc: 'Набери 25 очков в одной игре', progress: null },
+            { id: 'fiftyCollected', icon: '🥤', title: 'Коллекционер', desc: 'Собери 50 банок за все игры', progress: fiftyProgress },
+            { id: 'speedDemon', icon: '⚡', title: 'Скоростной демон', desc: 'Проживи 30 секунд на максимальной скорости', progress: null },
+            { id: 'skinChanger', icon: '🎨', title: 'Стилист', desc: 'Смени скин хотя бы раз', progress: null },
+            { id: 'bonusMaster', icon: '✨', title: 'Бонусный мастер', desc: 'Съешь 3 бонуса за одну игру', progress: null }
         ];
         container.innerHTML = list.map(ach => {
             const unlocked = achievements[ach.id];
+            let progressHtml = '';
+            if (ach.progress !== null && !unlocked) {
+                progressHtml = `<div class="progress-bar"><div class="progress-fill" style="width: ${ach.progress}%;"></div></div>`;
+            }
             return `
                 <div class="achievement-item ${!unlocked ? 'achievement-locked' : ''}">
                     <div class="achievement-icon">${ach.icon}</div>
                     <div class="achievement-text">
                         <div>${ach.title} ${unlocked ? '✅' : '🔒'}</div>
                         <div style="font-size:0.8rem; opacity:0.7;">${ach.desc}</div>
+                        ${progressHtml}
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    // --- МОДАЛКА СКИНА ---
+    // ------ РЕЖИМЫ ------
+    let gameMode = localStorage.getItem('pepsiedGameMode') || "classic";
+    const modeSwitches = document.querySelectorAll('.mode-switch');
+    modeSwitches.forEach(sw => {
+        const mode = sw.getAttribute('data-mode');
+        if (mode === gameMode) sw.classList.add('selected');
+        sw.addEventListener('click', () => {
+            modeSwitches.forEach(s => s.classList.remove('selected'));
+            sw.classList.add('selected');
+            gameMode = mode;
+            localStorage.setItem('pepsiedGameMode', gameMode);
+        });
+    });
+
+    // ------ МАГАЗИН (покупка скинов) ------
+    const shopModal = document.getElementById('shopModal');
+    const openShopBtn = document.getElementById('openShopBtn');
+    const closeShopBtn = document.getElementById('closeShopModalBtn');
+    const buySkinBtn = document.getElementById('buySkinBtn');
+    const shopMessage = document.getElementById('shopMessage');
+
+    function updateShopUI() {
+        const owned = ownedSkins.includes(1);
+        if (owned) {
+            buySkinBtn.disabled = true;
+            buySkinBtn.innerText = 'Куплено';
+            shopMessage.innerText = 'У вас уже есть этот скин!';
+        } else {
+            buySkinBtn.disabled = false;
+            buySkinBtn.innerText = 'Купить за 50 🪙';
+            shopMessage.innerText = '';
+        }
+    }
+
+    openShopBtn.addEventListener('click', () => {
+        updateShopUI();
+        shopModal.style.display = 'flex';
+    });
+    closeShopBtn.addEventListener('click', () => shopModal.style.display = 'none');
+    shopModal.addEventListener('click', (e) => { if(e.target === shopModal) shopModal.style.display = 'none'; });
+
+    buySkinBtn.addEventListener('click', () => {
+        if (ownedSkins.includes(1)) {
+            shopMessage.innerText = 'Уже куплено!';
+            return;
+        }
+        if (coins >= 50) {
+            coins -= 50;
+            localStorage.setItem('pepsiedCoins', coins);
+            updateCoinDisplay();
+            ownedSkins.push(1);
+            localStorage.setItem('pepsiedOwnedSkins', JSON.stringify(ownedSkins));
+            updateShopUI();
+            shopMessage.innerText = 'Поздравляем! Скин "Настя" куплен!';
+        } else {
+            shopMessage.innerText = 'Недостаточно монет! Играйте и зарабатывайте!';
+        }
+    });
+
+    // ------ СКИН МОДАЛКА (с проверкой владения) ------
     const modalSkin = document.getElementById('skinModal');
     const openSkinBtn = document.getElementById('openSkinBtn');
     const closeSkinBtn = document.getElementById('closeSkinModalBtn');
@@ -444,15 +554,24 @@
     const skinPreview = document.getElementById('skinPreview');
     const skinNameSpan = document.getElementById('skinName');
     const previewContainer = document.getElementById('skinPreviewContainer');
+
     function updateSkinPreview() {
         skinPreview.src = skins[tempSkinIndex].url;
         skinNameSpan.innerText = skins[tempSkinIndex].name;
         if (tempSkinIndex === currentSkinIndex) previewContainer.classList.add('selected');
         else previewContainer.classList.remove('selected');
     }
-    function openSkinModal() { tempSkinIndex = currentSkinIndex; updateSkinPreview(); modalSkin.style.display = 'flex'; }
+    function openSkinModal() {
+        tempSkinIndex = currentSkinIndex;
+        updateSkinPreview();
+        modalSkin.style.display = 'flex';
+    }
     function closeSkinModal() { modalSkin.style.display = 'none'; }
     function selectSkin() {
+        if (!ownedSkins.includes(tempSkinIndex)) {
+            alert('Этот скин не куплен! Зайдите в магазин.');
+            return;
+        }
         if (tempSkinIndex !== currentSkinIndex) {
             currentSkinIndex = tempSkinIndex;
             localStorage.setItem('pepsiedSkinIndex', currentSkinIndex);
@@ -467,11 +586,19 @@
     openSkinBtn.addEventListener('click', openSkinModal);
     closeSkinBtn.addEventListener('click', closeSkinModal);
     selectSkinBtn.addEventListener('click', selectSkin);
-    prevSkinBtn.addEventListener('click', () => { tempSkinIndex = (tempSkinIndex-1+skins.length)%skins.length; updateSkinPreview(); });
-    nextSkinBtn.addEventListener('click', () => { tempSkinIndex = (tempSkinIndex+1)%skins.length; updateSkinPreview(); });
+    prevSkinBtn.addEventListener('click', () => {
+        let newIdx = (tempSkinIndex-1+skins.length)%skins.length;
+        tempSkinIndex = newIdx;
+        updateSkinPreview();
+    });
+    nextSkinBtn.addEventListener('click', () => {
+        let newIdx = (tempSkinIndex+1)%skins.length;
+        tempSkinIndex = newIdx;
+        updateSkinPreview();
+    });
     modalSkin.addEventListener('click', (e) => { if(e.target === modalSkin) closeSkinModal(); });
 
-    // --- МОДАЛКА ДОСТИЖЕНИЙ ---
+    // ------ ДОСТИЖЕНИЯ МОДАЛКА ------
     const achievementsModal = document.getElementById('achievementsModal');
     const openAchievementsBtn = document.getElementById('openAchievementsBtn');
     const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
@@ -482,7 +609,7 @@
     closeAchievementsBtn.addEventListener('click', () => achievementsModal.style.display = 'none');
     achievementsModal.addEventListener('click', (e) => { if(e.target === achievementsModal) achievementsModal.style.display = 'none'; });
 
-    // Переход в игру
+    // Переход в игру (передаём выбранный режим, скин, монеты, достижения)
     document.getElementById('goToGameBtn').addEventListener('click', () => {
         window.location.href = 'snake.html';
     });
