@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Пепсиед — Впусти пепси в свою жизнь</title>
     <style>
+        /* ... все стили остаются без изменений, я не буду дублировать их для краткости, 
+           но вы можете использовать свой прошлый CSS, просто добавив новые элементы. 
+           Для экономии места я приведу только изменённую часть скрипта и структуру, 
+           но проще выложить полный файл. */
         * {
             margin: 0;
             padding: 0;
@@ -119,7 +123,6 @@
             box-shadow: 0 16px 30px rgba(102, 0, 255, 0.6);
         }
 
-        /* Монеты */
         .coin-display {
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(8px);
@@ -138,7 +141,6 @@
             font-size: 1.8rem;
         }
 
-        /* Панель выбора режимов */
         .modes-panel {
             display: flex;
             gap: 15px;
@@ -183,7 +185,7 @@
             z-index: 2;
         }
 
-        /* Общие модалки */
+        /* Модалки */
         .modal {
             position: fixed;
             top: 0;
@@ -380,7 +382,6 @@
             Помоги ей съесть все пепси!!!
         </div>
 
-        <!-- Монеты -->
         <div class="coin-display">
             <span class="coin-icon">🪙</span>
             <span id="coinAmount">0</span>
@@ -394,7 +395,6 @@
             <button class="difficulty-btn" id="openDifficultyBtn">⚙️ Сложность</button>
         </div>
 
-        <!-- Панель выбора режимов (классический / бесконечность / 3 жизни) -->
         <div class="modes-panel">
             <div class="mode-switch" data-mode="classic">
                 <span class="mode-icon">🎮</span>
@@ -431,26 +431,12 @@
     </div>
 </div>
 
-<!-- Модалка магазина -->
+<!-- Модалка магазина (динамический список некупленных скинов) -->
 <div id="shopModal" class="modal">
     <div class="modal-content">
         <h2>🛒 Магазин скинов</h2>
-        <div style="margin: 20px 0;">
-            <div style="display: flex; align-items: center; justify-content: space-between; background: #1a0b2e; padding: 15px; border-radius: 40px; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <img src="https://i.ibb.co/VW19FvXh/image.png" style="width: 60px; height: 60px; object-fit: contain;">
-                    <div>
-                        <div>Скин "Настя"</div>
-                        <div style="font-size: 0.8rem;">💎 Уникальная голова</div>
-                    </div>
-                </div>
-                <div>
-                    <span id="shopSkinPrice">50</span> 🪙
-                    <button class="buy-btn" id="buySkinBtn" style="padding: 5px 15px; font-size: 1rem; margin-left: 10px;">Купить</button>
-                </div>
-            </div>
-            <div id="shopMessage" style="font-size: 0.8rem; margin-top: 10px;"></div>
-        </div>
+        <div id="shopItemsList" style="margin: 20px 0;"></div>
+        <div id="shopMessage" style="font-size: 0.8rem; margin-top: 10px;"></div>
         <button class="close-modal-btn" id="closeShopModalBtn">Закрыть</button>
     </div>
 </div>
@@ -464,7 +450,7 @@
     </div>
 </div>
 
-<!-- Модалка выбора сложности -->
+<!-- Модалка сложности -->
 <div id="difficultyModal" class="modal">
     <div class="modal-content">
         <h2>⚙️ Уровень сложности</h2>
@@ -496,12 +482,13 @@
 </div>
 
 <script>
-    // ------ СКИНЫ ------
+    // ======================== СКИНЫ (теперь три) ========================
     const skins = [
         { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png", price: 0 },
-        { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png", price: 50 }
+        { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png", price: 50 },
+        { name: "Влад", url: "https://i.ibb.co/JW06HZK3/image.png", price: 70 }
     ];
-    let ownedSkins = JSON.parse(localStorage.getItem('pepsiedOwnedSkins')) || [0];
+    let ownedSkins = JSON.parse(localStorage.getItem('pepsiedOwnedSkins')) || [0]; // 0 - Дана по умолчанию
     let currentSkinIndex = 0;
     let tempSkinIndex = 0;
     const savedSkin = localStorage.getItem('pepsiedSkinIndex');
@@ -511,14 +498,14 @@
     }
     tempSkinIndex = currentSkinIndex;
 
-    // ------ МОНЕТЫ ------
+    // Монеты
     let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
     function updateCoinDisplay() {
         document.getElementById('coinAmount').innerText = coins;
     }
     updateCoinDisplay();
 
-    // ------ ДОСТИЖЕНИЯ ------
+    // Достижения (без изменений)
     let achievements = {
         firstWin: false, fiftyCollected: false, speedDemon: false, skinChanger: false, bonusMaster: false
     };
@@ -530,7 +517,6 @@
     function saveAchievements() {
         localStorage.setItem('pepsiedAchievements', JSON.stringify(achievements));
     }
-
     function renderAchievements() {
         const container = document.getElementById('achievementsList');
         const fiftyProgress = Math.min(100, (totalCollected / 50) * 100);
@@ -560,7 +546,7 @@
         }).join('');
     }
 
-    // ------ РЕЖИМЫ (классический / бесконечность / 3 жизни) ------
+    // Режимы игры (классический / бесконечность / 3 жизни)
     let gameMode = localStorage.getItem('pepsiedGameMode') || "classic";
     const modeSwitches = document.querySelectorAll('.mode-switch');
     modeSwitches.forEach(sw => {
@@ -574,95 +560,103 @@
         });
     });
 
-    // ------ СЛОЖНОСТЬ (новая модалка) ------
+    // Сложность (модалка)
     let currentDifficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
     const difficultyModal = document.getElementById('difficultyModal');
     const openDifficultyBtn = document.getElementById('openDifficultyBtn');
     const closeDifficultyBtn = document.getElementById('closeDifficultyBtn');
     const difficultyOptions = document.querySelectorAll('.difficulty-option');
-
     function updateDifficultyUI() {
         difficultyOptions.forEach(opt => {
             const diff = opt.getAttribute('data-diff');
-            if (diff === currentDifficulty) {
-                opt.classList.add('selected');
-            } else {
-                opt.classList.remove('selected');
-            }
+            if (diff === currentDifficulty) opt.classList.add('selected');
+            else opt.classList.remove('selected');
         });
     }
-
-    function openDifficultyModal() {
+    openDifficultyBtn.addEventListener('click', () => {
         updateDifficultyUI();
         difficultyModal.style.display = 'flex';
-    }
-    function closeDifficultyModal() {
-        difficultyModal.style.display = 'none';
-    }
-
-    openDifficultyBtn.addEventListener('click', openDifficultyModal);
-    closeDifficultyBtn.addEventListener('click', closeDifficultyModal);
-    difficultyModal.addEventListener('click', (e) => {
-        if (e.target === difficultyModal) closeDifficultyModal();
     });
-
+    closeDifficultyBtn.addEventListener('click', () => difficultyModal.style.display = 'none');
+    difficultyModal.addEventListener('click', (e) => { if(e.target === difficultyModal) difficultyModal.style.display = 'none'; });
     difficultyOptions.forEach(opt => {
         opt.addEventListener('click', () => {
-            const newDiff = opt.getAttribute('data-diff');
-            currentDifficulty = newDiff;
+            currentDifficulty = opt.getAttribute('data-diff');
             localStorage.setItem('pepsiedDifficulty', currentDifficulty);
             updateDifficultyUI();
-            closeDifficultyModal(); // можно оставить открытой или закрыть – решите сами, я закрою
+            closeDifficultyBtn.click();
         });
     });
 
-    // ------ МАГАЗИН ------
+    // МАГАЗИН (показываем только некупленные скины)
     const shopModal = document.getElementById('shopModal');
     const openShopBtn = document.getElementById('openShopBtn');
     const closeShopBtn = document.getElementById('closeShopModalBtn');
-    const buySkinBtn = document.getElementById('buySkinBtn');
+    const shopItemsList = document.getElementById('shopItemsList');
     const shopMessage = document.getElementById('shopMessage');
 
-    function updateShopUI() {
-        const owned = ownedSkins.includes(1);
-        if (owned) {
-            buySkinBtn.disabled = true;
-            buySkinBtn.innerText = 'Куплено';
+    function renderShop() {
+        const notOwned = skins.filter((skin, idx) => !ownedSkins.includes(idx) && skin.price > 0);
+        if (notOwned.length === 0) {
+            shopItemsList.innerHTML = '<div style="text-align:center; padding:20px;">✨ Все скины уже куплены! ✨</div>';
+            return;
+        }
+        shopItemsList.innerHTML = notOwned.map(skin => {
+            const idx = skins.findIndex(s => s.name === skin.name);
+            return `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #1a0b2e; padding: 15px; border-radius: 40px; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img src="${skin.url}" style="width: 60px; height: 60px; object-fit: contain;">
+                        <div>
+                            <div>Скин "${skin.name}"</div>
+                            <div style="font-size: 0.8rem;">💎 Уникальная голова</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span>${skin.price}</span> 🪙
+                        <button class="buy-btn" data-skin-index="${idx}" style="padding: 5px 15px; font-size: 1rem; margin-left: 10px;">Купить</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        // Добавляем обработчики на кнопки "Купить"
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const skinIndex = parseInt(btn.getAttribute('data-skin-index'));
+                buySkin(skinIndex);
+            });
+        });
+    }
+
+    function buySkin(skinIndex) {
+        const skin = skins[skinIndex];
+        if (ownedSkins.includes(skinIndex)) {
             shopMessage.innerText = 'У вас уже есть этот скин!';
+            return;
+        }
+        if (coins >= skin.price) {
+            coins -= skin.price;
+            localStorage.setItem('pepsiedCoins', coins);
+            updateCoinDisplay();
+            ownedSkins.push(skinIndex);
+            localStorage.setItem('pepsiedOwnedSkins', JSON.stringify(ownedSkins));
+            shopMessage.innerText = `Поздравляем! Скин "${skin.name}" куплен!`;
+            renderShop(); // обновить магазин
+            if (modalSkin.style.display === 'flex') updateSkinPreview(); // обновить превью в модалке скинов
         } else {
-            buySkinBtn.disabled = false;
-            buySkinBtn.innerText = 'Купить за 50 🪙';
-            shopMessage.innerText = '';
+            shopMessage.innerText = 'Недостаточно монет! Играйте и зарабатывайте!';
         }
     }
 
     openShopBtn.addEventListener('click', () => {
-        updateShopUI();
+        renderShop();
+        shopMessage.innerText = '';
         shopModal.style.display = 'flex';
     });
     closeShopBtn.addEventListener('click', () => shopModal.style.display = 'none');
     shopModal.addEventListener('click', (e) => { if(e.target === shopModal) shopModal.style.display = 'none'; });
 
-    buySkinBtn.addEventListener('click', () => {
-        if (ownedSkins.includes(1)) {
-            shopMessage.innerText = 'Уже куплено!';
-            return;
-        }
-        if (coins >= 50) {
-            coins -= 50;
-            localStorage.setItem('pepsiedCoins', coins);
-            updateCoinDisplay();
-            ownedSkins.push(1);
-            localStorage.setItem('pepsiedOwnedSkins', JSON.stringify(ownedSkins));
-            updateShopUI();
-            shopMessage.innerText = 'Поздравляем! Скин "Настя" куплен!';
-            if (modalSkin.style.display === 'flex') updateSkinPreview();
-        } else {
-            shopMessage.innerText = 'Недостаточно монет! Играйте и зарабатывайте!';
-        }
-    });
-
-    // ------ МОДАЛКА ВЫБОРА СКИНА ------
+    // Модалка выбора скина (с тремя скинами)
     const modalSkin = document.getElementById('skinModal');
     const openSkinBtn = document.getElementById('openSkinBtn');
     const closeSkinBtn = document.getElementById('closeSkinModalBtn');
@@ -735,7 +729,7 @@
     });
     modalSkin.addEventListener('click', (e) => { if(e.target === modalSkin) closeSkinModal(); });
 
-    // ------ ДОСТИЖЕНИЯ МОДАЛКА ------
+    // Модалка достижений
     const achievementsModal = document.getElementById('achievementsModal');
     const openAchievementsBtn = document.getElementById('openAchievementsBtn');
     const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
