@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Пепсиед — Впусти пепси в свою жизнь</title>
+    <title>Пепсиед — Поражение</title>
     <style>
         * {
             margin: 0;
@@ -15,153 +15,114 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            font-family: 'Segoe UI', 'Montserrat', system-ui, 'Inter', sans-serif;
-            background-color: #0a0c12;
+            font-family: 'Segoe UI', 'Montserrat', system-ui, sans-serif;
         }
 
-        .hero {
+        .gameover-bg {
             position: relative;
             width: 100%;
             height: 100%;
-            background-image: url('https://i.ibb.co/twYQtmGc/12312431.png');
+            background-image: url('https://i.ibb.co/chdMMWZy/photo-2026-06-03-23-09-54.jpg');
             background-size: cover;
-            background-position: right center;  /* Сдвинули фон вправо */
+            background-position: center;
             background-repeat: no-repeat;
         }
 
-        .hero::before {
+        .gameover-bg::before {
             content: '';
             position: absolute;
             top: 0;
-            right: 0;
-            bottom: 0;
             left: 0;
-            background: linear-gradient(90deg, rgba(10,12,18,0.3) 0%, rgba(30,10,40,0.7) 100%);
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             pointer-events: none;
         }
 
-        .right-content {
+        .content {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 50%;
-            max-width: 800px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-end;
-            padding: 40px 60px 40px 30px;
-            text-align: right;
-            backdrop-filter: blur(2px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 90%;
+            max-width: 700px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 60px;
+            padding: 40px 30px;
+            border: 2px solid #ff66cc;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             z-index: 2;
         }
 
-        .game-title {
-            font-size: 6rem;
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            letter-spacing: 6px;
-            background: linear-gradient(135deg, #FFFFFF, #E0B0FF);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 25px;
-        }
-
-        .description {
+        .message {
             font-size: 2rem;
-            font-weight: 600;
-            color: #F0F3FA;
-            text-shadow: 0 3px 8px rgba(0,0,0,0.5);
-            max-width: 600px;
-            margin-top: 15px;
-            line-height: 1.4;
+            font-weight: bold;
+            color: #ffb86c;
+            text-shadow: 2px 2px 10px black;
+            margin-bottom: 40px;
+            line-height: 1.3;
         }
 
-        .start-btn {
-            margin-top: 55px;
+        .buttons {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
             background: #6600ff;
             border: none;
-            padding: 18px 50px;
-            border-radius: 80px;
-            font-size: 2rem;
+            padding: 14px 32px;
+            border-radius: 60px;
+            font-size: 1.3rem;
             font-weight: bold;
             color: white;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 12px 25px rgba(102, 0, 255, 0.4);
-            letter-spacing: 2px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            text-decoration: none;
+            display: inline-block;
             font-family: inherit;
         }
 
-        .start-btn:hover {
+        .btn:hover {
             background: #7c1aff;
             transform: scale(1.02);
-            box-shadow: 0 16px 30px rgba(102, 0, 255, 0.6);
         }
 
-        .start-btn:active {
+        .btn:active {
             transform: scale(0.98);
         }
 
-        .dev-credit {
-            position: absolute;
-            bottom: 28px;
-            right: 60px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: rgba(255,245,210,0.9);
-            background: rgba(0,0,0,0.5);
-            padding: 8px 20px;
-            border-radius: 60px;
-            backdrop-filter: blur(5px);
-            z-index: 2;
-        }
-
-        @media (max-width: 850px) {
-            .right-content {
-                width: 70%;
-                padding: 30px 30px 30px 20px;
-            }
-            .game-title { font-size: 3.5rem; }
-            .description { font-size: 1.4rem; }
-            .start-btn { font-size: 1.5rem; padding: 12px 32px; }
-            .dev-credit { right: 30px; bottom: 18px; font-size: 0.9rem; }
-        }
-
-        @media (max-width: 550px) {
-            .right-content {
-                width: 85%;
-                padding: 20px 20px 20px 15px;
-            }
-            .game-title { font-size: 2.5rem; letter-spacing: 3px; }
-            .description { font-size: 1.2rem; }
-            .start-btn { font-size: 1.3rem; padding: 10px 26px; margin-top: 30px; }
-            /* Для маленьких экранов дополнительно сдвигаем фон */
-            .hero {
-                background-position: 70% center;
-            }
+        @media (max-width: 600px) {
+            .message { font-size: 1.4rem; }
+            .btn { font-size: 1rem; padding: 10px 20px; }
+            .content { padding: 30px 20px; }
         }
     </style>
 </head>
 <body>
-<div class="hero">
-    <div class="right-content">
-        <div class="game-title">ПЕПСИЕД</div>
-        <div class="description">
-            Донится любит пепси.<br>
-            Помоги ей съесть все пепси!!!
+<div class="gameover-bg">
+    <div class="content">
+        <div class="message">
+            💀 Дане мало столько пепси, ей нужно БОЛЬШЕ!!! Начни заново 💀
         </div>
-        <button class="start-btn" id="goToGameBtn">Начать играть</button>
+        <div class="buttons">
+            <button class="btn" id="restartBtn">🔄 Начать заново</button>
+            <button class="btn" id="menuBtn">🏠 В главное меню</button>
+        </div>
     </div>
-    <div class="dev-credit">Разработчик Влад Spodzh</div>
 </div>
 
 <script>
-    document.getElementById('goToGameBtn').addEventListener('click', () => {
+    document.getElementById('restartBtn').addEventListener('click', () => {
         window.location.href = 'snake.html';
+    });
+    document.getElementById('menuBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
     });
 </script>
 </body>
