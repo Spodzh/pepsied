@@ -83,6 +83,22 @@
             background-repeat: no-repeat;
             background-position: center;
         }
+        /* Рекорд */
+        .record-panel {
+            background: #000000aa;
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            color: #ffd966;
+            border: 1px solid #b77eff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .record-icon {
+            font-size: 1.3rem;
+        }
 
         .restart-btn, .back-to-menu {
             background: #5f2e9e;
@@ -115,7 +131,7 @@
             text-align: center;
         }
 
-        /* ===== КРЕСТОВИНА (новая, удобная) ===== */
+        /* КРЕСТОВИНА */
         .touch-controls {
             display: none;
             justify-content: center;
@@ -133,10 +149,6 @@
             width: 280px;
             justify-items: center;
             align-items: center;
-        }
-        .dpad .empty {
-            visibility: hidden;
-            pointer-events: none;
         }
         .dir-btn {
             background: #2c1a48;
@@ -199,6 +211,10 @@
                 font-size: 1.2rem;
                 padding: 5px 12px;
             }
+            .record-panel {
+                font-size: 1rem;
+                padding: 5px 12px;
+            }
             .restart-btn, .back-to-menu {
                 font-size: 0.75rem;
                 padding: 6px 14px;
@@ -219,12 +235,15 @@
                 <div id="scoreIcon" class="score-icon"></div>
                 <span id="scoreValue">0</span>
             </div>
+            <div class="record-panel">
+                <span class="record-icon">🏆</span>
+                <span id="recordValue">0</span>
+            </div>
             <div class="status" id="gameStatus">🐍 Игра активна</div>
             <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
             <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
         </div>
     </div>
-    <!-- НОВАЯ КРЕСТОВИНА (вместо старых кнопок) -->
     <div class="touch-controls">
         <div class="dpad">
             <div></div>
@@ -245,14 +264,27 @@
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
+        const recordSpan = document.getElementById('recordValue');
         const gameStatusDiv = document.getElementById('gameStatus');
         const scoreIconElement = document.getElementById('scoreIcon');
         canvas.width = 600; canvas.height = 600;
         const GRID_SIZE = 20;
         const CELL_SIZE = 30;
 
-        // === ЗАГРУЗКА ВСЕХ КАРТИНОК ===
-        // Иконка счёта (PNG)
+        // Рекорд из localStorage
+        let highScore = localStorage.getItem('pepsiedHighScore') ? parseInt(localStorage.getItem('pepsiedHighScore')) : 0;
+        recordSpan.innerText = highScore;
+
+        // Функция обновления рекорда
+        function updateHighScore(currentScore) {
+            if (currentScore > highScore) {
+                highScore = currentScore;
+                localStorage.setItem('pepsiedHighScore', highScore);
+                recordSpan.innerText = highScore;
+            }
+        }
+
+        // === ЗАГРУЗКА КАРТИНОК ===
         const scoreIconImg = new Image();
         scoreIconImg.src = "https://mir-s3-cdn-cf.behance.net/project_modules/1400/0e0066214215461.6753e7b69faf5.png";
         scoreIconImg.onload = () => {
@@ -265,28 +297,24 @@
             scoreIconElement.style.backgroundImage = 'none';
         };
 
-        // Фон игрового поля
         const backgroundImage = new Image();
         backgroundImage.src = "https://as2.ftcdn.net/jpg/03/18/48/95/1000_F_318489561_qpVjxV7GEF4btKaiD4OWe78vX737Jnzz.jpg";
         let backgroundLoaded = false;
         backgroundImage.onload = () => { backgroundLoaded = true; draw(); };
         backgroundImage.onerror = () => { backgroundLoaded = false; };
 
-        // Еда (картинка Pepsi)
         const foodImage = new Image();
         foodImage.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
         let foodImageLoaded = false;
         foodImage.onload = () => { foodImageLoaded = true; draw(); };
         foodImage.onerror = () => { foodImageLoaded = false; };
 
-        // Голова змеи (PNG)
         const headImage = new Image();
         headImage.src = "https://i.ibb.co/pBkq71nP/412421.png";
         let headImageLoaded = false;
         headImage.onload = () => { headImageLoaded = true; draw(); };
         headImage.onerror = () => { headImageLoaded = false; };
 
-        // Хвост (логотип Pepsi с прозрачным фоном)
         const tailImage = new Image();
         tailImage.src = "https://cdn-icons-png.flaticon.com/512/732/732064.png";
         let tailImageLoaded = false;
@@ -302,9 +330,24 @@
         let direction = 'RIGHT', nextDirection = 'RIGHT';
         let score = 0, gameLoop = null, gameActive = true, speedMs = 150;
 
+        // Победа при счёте 10
+        function checkWin() {
+            if (score >= 10) {
+                gameActive = false;
+                if (gameLoop) clearInterval(gameLoop);
+                gameLoop = null;
+                // Обновляем рекорд перед переходом
+                updateHighScore(score);
+                window.location.replace('win.html');
+                return true;
+            }
+            return false;
+        }
+
         function goToGameOver() {
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = null;
+            updateHighScore(score);
             window.location.replace('gameover.html');
         }
 
@@ -341,7 +384,15 @@
             food = freeCells[Math.floor(Math.random() * freeCells.length)];
         }
 
-        function updateScoreUI() { scoreSpan.innerText = score; }
+        function updateScoreUI() { 
+            scoreSpan.innerText = score;
+            // Обновляем рекорд в реальном времени (если текущий счёт побил рекорд)
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('pepsiedHighScore', highScore);
+                recordSpan.innerText = highScore;
+            }
+        }
 
         function moveSnake() {
             if (!gameActive) return;
@@ -358,6 +409,8 @@
                 snake.unshift(newHead);
                 score++;
                 updateScoreUI();
+                // Проверка на победу после увеличения счёта
+                if (checkWin()) return;
                 if (score % 5 === 0 && speedMs > 70) {
                     speedMs = Math.max(70, speedMs - 7);
                     clearInterval(gameLoop);
@@ -387,6 +440,7 @@
         function gameTick() { if (gameActive) moveSnake(); }
 
         function draw() {
+            if (!gameActive && gameLoop === null) return;
             // Фон
             if (backgroundLoaded && backgroundImage.complete && backgroundImage.naturalWidth > 0) {
                 ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
@@ -394,14 +448,14 @@
                 ctx.fillStyle = "#2d1f3a";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            // Белая сетка
+            // Сетка
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.5;
             for (let i = 0; i <= GRID_SIZE; i++) {
                 ctx.beginPath(); ctx.moveTo(i*CELL_SIZE, 0); ctx.lineTo(i*CELL_SIZE, canvas.height); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, i*CELL_SIZE); ctx.lineTo(canvas.width, i*CELL_SIZE); ctx.stroke();
             }
-            // Еда (картинка или запасной вариант)
+            // Еда
             if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth > 0) {
                 ctx.drawImage(foodImage, food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
             } else {
@@ -413,7 +467,7 @@
                 ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
                 ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
             }
-            // Змейка: голова — PNG, тело — логотип Pepsi (или круги)
+            // Змейка
             for (let i = 0; i < snake.length; i++) {
                 const s = snake[i];
                 const x = s.x * CELL_SIZE, y = s.y * CELL_SIZE;
@@ -449,7 +503,6 @@
             if (opp[newDir] !== direction) nextDirection = newDir;
         }
 
-        // Управление с клавиатуры
         window.addEventListener('keydown', (e) => {
             const k = e.key;
             if (k === 'ArrowUp') changeDirection('UP');
@@ -459,7 +512,6 @@
             e.preventDefault();
         });
 
-        // Управление с новой крестовины
         document.querySelectorAll('.dir-btn').forEach(btn => {
             const dir = btn.getAttribute('data-dir');
             btn.addEventListener('click', (e) => {
@@ -472,7 +524,6 @@
             });
         });
 
-        // Кнопки "Заново" и "В меню"
         document.getElementById('restartGameBtn').addEventListener('click', () => { if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('restartGameBtn').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('backToMenuBtn').addEventListener('click', () => window.location.href = 'index.html');
