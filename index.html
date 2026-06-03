@@ -25,7 +25,7 @@
             height: 100%;
             background-image: url('https://i.ibb.co/twYQtmGc/12312431.png');
             background-size: cover;
-            background-position: center center;
+            background-position: 75% center;  /* Сдвиг вправо */
             background-repeat: no-repeat;
         }
 
@@ -57,9 +57,8 @@
             z-index: 2;
         }
 
-        /* УВЕЛИЧЕННЫЙ ЗАГОЛОВОК */
         .game-title {
-            font-size: 6rem;       /* было 5rem */
+            font-size: 6rem;
             font-weight: 900;
             color: #ffffff;
             text-shadow: 0 10px 25px rgba(0,0,0,0.6);
@@ -71,9 +70,8 @@
             margin-bottom: 25px;
         }
 
-        /* УВЕЛИЧЕННОЕ ОПИСАНИЕ */
         .description {
-            font-size: 2rem;       /* было 1.5rem */
+            font-size: 2rem;
             font-weight: 600;
             color: #F0F3FA;
             text-shadow: 0 3px 8px rgba(0,0,0,0.5);
@@ -141,6 +139,10 @@
             .game-title { font-size: 2.5rem; letter-spacing: 3px; }
             .description { font-size: 1.2rem; }
             .start-btn { font-size: 1.3rem; padding: 10px 26px; margin-top: 30px; }
+            /* Ещё сильнее сдвигаем фон вправо на узких экранах */
+            .hero {
+                background-position: 85% center;
+            }
         }
     </style>
 </head>
