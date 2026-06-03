@@ -49,7 +49,6 @@
             width: 100%;
             height: auto;
             background: #2d1f3a;
-            cursor: pointer;
         }
 
         .info-bar {
@@ -77,7 +76,12 @@
             gap: 8px;
         }
         .score-icon {
-            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: inline-block;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .restart-btn, .back-to-menu {
@@ -111,14 +115,13 @@
             text-align: center;
         }
 
-        /* ===== НОВЫЕ СТИЛИ ДЛЯ КРЕСТОВИНЫ ===== */
+        /* ===== КРЕСТОВИНА (новая, удобная) ===== */
         .touch-controls {
-            display: none; /* скрыты на ПК, показываем только на мобильных */
+            display: none;
             justify-content: center;
             margin-top: 30px;
             width: 100%;
         }
-        /* Сама крестовина — сетка 3x3, но заполнены только 4 направления */
         .dpad {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -158,7 +161,6 @@
             box-shadow: 0 2px 0 #0f0719;
             background: #7f4ac7;
         }
-        /* Разные размеры для разных экранов */
         @media (max-width: 600px) {
             .dpad {
                 width: 240px;
@@ -183,8 +185,6 @@
                 font-size: 1.7rem;
             }
         }
-
-        /* Показываем крестовину только на мобильных */
         @media (max-width: 768px) {
             .touch-controls {
                 display: flex;
@@ -215,16 +215,19 @@
     <div class="game-wrapper">
         <canvas id="snakeCanvas" width="600" height="600"></canvas>
         <div class="info-bar">
-            <div class="score-panel"><span class="score-icon">🍕</span> <span id="scoreValue">0</span></div>
+            <div class="score-panel">
+                <div id="scoreIcon" class="score-icon"></div>
+                <span id="scoreValue">0</span>
+            </div>
             <div class="status" id="gameStatus">🐍 Игра активна</div>
             <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
             <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
         </div>
     </div>
-    <!-- Новое управление: крестовина -->
+    <!-- НОВАЯ КРЕСТОВИНА (вместо старых кнопок) -->
     <div class="touch-controls">
         <div class="dpad">
-            <div></div> <!-- пустая ячейка -->
+            <div></div>
             <button class="dir-btn" data-dir="UP">▲</button>
             <div></div>
             <button class="dir-btn" data-dir="LEFT">◀</button>
@@ -243,9 +246,52 @@
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
         const gameStatusDiv = document.getElementById('gameStatus');
+        const scoreIconElement = document.getElementById('scoreIcon');
         canvas.width = 600; canvas.height = 600;
         const GRID_SIZE = 20;
         const CELL_SIZE = 30;
+
+        // === ЗАГРУЗКА ВСЕХ КАРТИНОК ===
+        // Иконка счёта (PNG)
+        const scoreIconImg = new Image();
+        scoreIconImg.src = "https://mir-s3-cdn-cf.behance.net/project_modules/1400/0e0066214215461.6753e7b69faf5.png";
+        scoreIconImg.onload = () => {
+            scoreIconElement.style.backgroundImage = `url('${scoreIconImg.src}')`;
+            scoreIconElement.style.backgroundSize = 'contain';
+        };
+        scoreIconImg.onerror = () => {
+            scoreIconElement.innerText = '🍕';
+            scoreIconElement.style.fontSize = '1.4rem';
+            scoreIconElement.style.backgroundImage = 'none';
+        };
+
+        // Фон игрового поля
+        const backgroundImage = new Image();
+        backgroundImage.src = "https://as2.ftcdn.net/jpg/03/18/48/95/1000_F_318489561_qpVjxV7GEF4btKaiD4OWe78vX737Jnzz.jpg";
+        let backgroundLoaded = false;
+        backgroundImage.onload = () => { backgroundLoaded = true; draw(); };
+        backgroundImage.onerror = () => { backgroundLoaded = false; };
+
+        // Еда (картинка Pepsi)
+        const foodImage = new Image();
+        foodImage.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
+        let foodImageLoaded = false;
+        foodImage.onload = () => { foodImageLoaded = true; draw(); };
+        foodImage.onerror = () => { foodImageLoaded = false; };
+
+        // Голова змеи (PNG)
+        const headImage = new Image();
+        headImage.src = "https://i.ibb.co/pBkq71nP/412421.png";
+        let headImageLoaded = false;
+        headImage.onload = () => { headImageLoaded = true; draw(); };
+        headImage.onerror = () => { headImageLoaded = false; };
+
+        // Хвост (логотип Pepsi с прозрачным фоном)
+        const tailImage = new Image();
+        tailImage.src = "https://cdn-icons-png.flaticon.com/512/732/732064.png";
+        let tailImageLoaded = false;
+        tailImage.onload = () => { tailImageLoaded = true; draw(); };
+        tailImage.onerror = () => { tailImageLoaded = false; };
 
         let snake = [
             { x: 10, y: 10 },
@@ -341,37 +387,58 @@
         function gameTick() { if (gameActive) moveSnake(); }
 
         function draw() {
-            ctx.fillStyle = "#2d1f3a";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Фон
+            if (backgroundLoaded && backgroundImage.complete && backgroundImage.naturalWidth > 0) {
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = "#2d1f3a";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            // Белая сетка
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.5;
             for (let i = 0; i <= GRID_SIZE; i++) {
                 ctx.beginPath(); ctx.moveTo(i*CELL_SIZE, 0); ctx.lineTo(i*CELL_SIZE, canvas.height); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, i*CELL_SIZE); ctx.lineTo(canvas.width, i*CELL_SIZE); ctx.stroke();
             }
-            ctx.fillStyle = "#E31837";
-            ctx.beginPath();
-            ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, Math.PI*2);
-            ctx.fill();
-            ctx.fillStyle = "white";
-            ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
-            ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
+            // Еда (картинка или запасной вариант)
+            if (foodImageLoaded && foodImage.complete && foodImage.naturalWidth > 0) {
+                ctx.drawImage(foodImage, food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            } else {
+                ctx.fillStyle = "#E31837";
+                ctx.beginPath();
+                ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.font = `bold ${CELL_SIZE*0.6}px monospace`;
+                ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
+            }
+            // Змейка: голова — PNG, тело — логотип Pepsi (или круги)
             for (let i = 0; i < snake.length; i++) {
                 const s = snake[i];
-                const x = s.x*CELL_SIZE, y = s.y*CELL_SIZE;
-                const radius = CELL_SIZE*0.4;
-                ctx.beginPath();
-                ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, Math.PI*2);
-                ctx.fillStyle = "#6a3e9a";
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, Math.PI*2);
-                ctx.fillStyle = (i===0) ? "#bc7eff" : "#9a5fdf";
-                ctx.fill();
-                if (i !== 0) {
-                    ctx.fillStyle = "#e8d5ff";
-                    ctx.font = `${CELL_SIZE*0.55}px "Segoe UI Emoji"`;
-                    ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6);
+                const x = s.x * CELL_SIZE, y = s.y * CELL_SIZE;
+                const isHead = (i === 0);
+                if (isHead && headImageLoaded && headImage.complete && headImage.naturalWidth > 0) {
+                    ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
+                }
+                else if (!isHead && tailImageLoaded && tailImage.complete && tailImage.naturalWidth > 0) {
+                    ctx.drawImage(tailImage, x, y, CELL_SIZE, CELL_SIZE);
+                }
+                else {
+                    const radius = CELL_SIZE * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius+1, 0, Math.PI*2);
+                    ctx.fillStyle = "#6a3e9a";
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, radius, 0, Math.PI*2);
+                    ctx.fillStyle = isHead ? "#bc7eff" : "#9a5fdf";
+                    ctx.fill();
+                    if (!isHead) {
+                        ctx.fillStyle = "#e8d5ff";
+                        ctx.font = `${CELL_SIZE*0.55}px "Segoe UI Emoji"`;
+                        ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6);
+                    }
                 }
             }
         }
@@ -382,6 +449,7 @@
             if (opp[newDir] !== direction) nextDirection = newDir;
         }
 
+        // Управление с клавиатуры
         window.addEventListener('keydown', (e) => {
             const k = e.key;
             if (k === 'ArrowUp') changeDirection('UP');
@@ -391,7 +459,7 @@
             e.preventDefault();
         });
 
-        // Обработчики для новой крестовины
+        // Управление с новой крестовины
         document.querySelectorAll('.dir-btn').forEach(btn => {
             const dir = btn.getAttribute('data-dir');
             btn.addEventListener('click', (e) => {
@@ -404,6 +472,7 @@
             });
         });
 
+        // Кнопки "Заново" и "В меню"
         document.getElementById('restartGameBtn').addEventListener('click', () => { if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('restartGameBtn').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameLoop) clearInterval(gameLoop); initGame(); });
         document.getElementById('backToMenuBtn').addEventListener('click', () => window.location.href = 'index.html');
