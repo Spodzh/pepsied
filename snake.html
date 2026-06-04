@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Пепсиед — Змейка</title>
+    <title>Пепсиед — Змейка (мега-обновление)</title>
     <style>
         * { margin: 0; padding: 0; user-select: none; box-sizing: border-box; touch-action: manipulation; }
         body {
@@ -16,6 +16,10 @@
             padding: 16px;
             margin: 0;
             overflow: hidden;
+            transition: background 0.3s;
+        }
+        body.dark-mode {
+            background: #000000;
         }
         .game-container {
             display: flex;
@@ -26,7 +30,6 @@
             position: relative;
             z-index: 2;
         }
-        /* Анимированный фон (облака) */
         .animated-bg {
             position: fixed;
             top: 0;
@@ -58,6 +61,11 @@
             width: 100%;
             position: relative;
             z-index: 1;
+            transition: background 0.3s;
+        }
+        body.dark-mode .game-wrapper {
+            background: #0a0a0acc;
+            border-color: #ffcc44;
         }
         canvas {
             display: block;
@@ -91,45 +99,37 @@
             align-items: center;
             gap: 8px;
         }
-        .score-icon { width: 28px; height: 28px; display: inline-block; background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .record-panel {
+        .combo-panel {
             background: #000000aa;
             backdrop-filter: blur(4px);
-            padding: 8px 18px;
-            border-radius: 50px;
+            padding: 5px 15px;
+            border-radius: 40px;
             font-size: 1.2rem;
+            color: #ffaa44;
+        }
+        .record-panel, .lives-panel, .restart-btn, .back-to-menu, .pause-btn, .sound-toggle {
+            background: #000000aa;
+            backdrop-filter: blur(4px);
+            padding: 5px 15px;
+            border-radius: 40px;
+            font-size: 1rem;
             color: #ffd966;
             border: 1px solid #b77eff;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
-        .lives-panel {
-            background: #000000aa;
-            padding: 5px 15px;
-            border-radius: 50px;
-            display: flex;
-            gap: 5px;
-            font-size: 1.3rem;
-        }
-        .restart-btn, .back-to-menu, .pause-btn, .sound-toggle {
+        button {
             background: #5f2e9e;
             border: none;
             color: white;
             font-weight: bold;
-            font-size: 0.9rem;
-            padding: 8px 18px;
+            padding: 5px 15px;
             border-radius: 40px;
             cursor: pointer;
-            font-family: inherit;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .touch-controls {
             display: none;
             justify-content: center;
             margin-top: 30px;
             width: 100%;
-            transition: opacity 0.2s;
         }
         .dpad {
             display: grid;
@@ -175,13 +175,14 @@
     <div class="game-wrapper">
         <canvas id="snakeCanvas" width="600" height="600"></canvas>
         <div class="info-bar">
-            <div class="score-panel"><div id="scoreIcon" class="score-icon"></div><span id="scoreValue">0</span></div>
-            <div class="record-panel"><span>🏅 Рекорд:</span><span id="recordValue">0</span></div>
+            <div class="score-panel"><span>🍕</span> <span id="scoreValue">0</span></div>
+            <div class="combo-panel" id="comboDisplay">x1</div>
+            <div class="record-panel">🏅 <span id="recordValue">0</span></div>
             <div id="livesPanel" class="lives-panel">❤️❤️❤️</div>
-            <button class="pause-btn" id="pauseBtn">⏸️ Пауза</button>
-            <button class="sound-toggle" id="soundToggleBtn">🔊 Звук</button>
-            <button class="restart-btn" id="restartGameBtn">🔄 Заново</button>
-            <button class="back-to-menu" id="backToMenuBtn">🏠 В меню</button>
+            <button class="pause-btn" id="pauseBtn">⏸️</button>
+            <button class="sound-toggle" id="soundToggleBtn">🔊</button>
+            <button class="restart-btn" id="restartGameBtn">🔄</button>
+            <button class="back-to-menu" id="backToMenuBtn">🏠</button>
         </div>
     </div>
     <div class="touch-controls" id="touchControls">
@@ -197,16 +198,22 @@
 
 <script>
     (function(){
-        // -------------------- НАСТРОЙКИ ИЗ LOCALSTORAGE --------------------
+        // -------------------- ЗАГРУЗКА НАСТРОЕК --------------------
         const touchEnabled = localStorage.getItem('pepsiedTouchEnabled') !== 'false';
-        const volumePercent = localStorage.getItem('pepsiedVolume') ? parseInt(localStorage.getItem('pepsiedVolume')) : 70;
+        if (!touchEnabled) document.getElementById('touchControls').style.display = 'none';
         let soundEnabled = localStorage.getItem('pepsiedSound') !== 'false';
-        
-        // Показываем/скрываем кнопки
-        const touchControlsDiv = document.getElementById('touchControls');
-        if (!touchEnabled) touchControlsDiv.style.display = 'none';
-        
-        // -------------------- ЗВУК (с громкостью) --------------------
+        let volume = localStorage.getItem('pepsiedVolume') ? parseInt(localStorage.getItem('pepsiedVolume')) : 70;
+        let darkMode = localStorage.getItem('pepsiedDarkMode') === 'true';
+        if (darkMode) document.body.classList.add('dark-mode');
+        const difficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
+        let baseSpeed = 150, speedInc = 7;
+        if (difficulty === 'easy') { baseSpeed = 180; speedInc = 5; }
+        if (difficulty === 'hard') { baseSpeed = 120; speedInc = 10; }
+        const gameMode = localStorage.getItem('pepsiedGameMode') || "classic";
+        const isEndless = (gameMode === 'endless');
+        const isThreeLives = (gameMode === '3lives');
+
+        // -------------------- ЗВУКИ --------------------
         let audioCtx = null;
         function initAudio() { if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         function playSound(type) {
@@ -218,59 +225,64 @@
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.2 * volumePercent / 100, now);
+            gain.gain.setValueAtTime(0.2 * volume/100, now);
             gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.5);
-            if (type === 'eat') { osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(440, now + 0.1); osc.type = 'sine'; }
-            else if (type === 'bonus') { osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1); osc.type = 'triangle'; }
-            else if (type === 'death') { osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.3); osc.type = 'sawtooth'; }
-            else if (type === 'win') { osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.2); osc.type = 'square'; }
+            if (type === 'eat') {
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.1);
+                osc.type = 'sine';
+            } else if (type === 'canopen') {
+                osc.frequency.setValueAtTime(660, now);
+                osc.frequency.exponentialRampToValueAtTime(330, now + 0.08);
+                osc.type = 'triangle';
+            } else if (type === 'bonus') {
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                osc.type = 'triangle';
+            } else if (type === 'death') {
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                osc.type = 'sawtooth';
+            } else if (type === 'win') {
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+                osc.type = 'square';
+            }
             osc.start(); osc.stop(now + 0.3);
         }
-        const soundToggleBtn = document.getElementById('soundToggleBtn');
-        soundToggleBtn.innerText = soundEnabled ? "🔊 Звук" : "🔇 Звук";
-        soundToggleBtn.addEventListener('click', () => {
+        document.getElementById('soundToggleBtn').addEventListener('click', () => {
             soundEnabled = !soundEnabled;
             localStorage.setItem('pepsiedSound', soundEnabled);
-            soundToggleBtn.innerText = soundEnabled ? "🔊 Звук" : "🔇 Звук";
-            if (soundEnabled && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            document.getElementById('soundToggleBtn').innerText = soundEnabled ? "🔊" : "🔇";
         });
-        
+
         // -------------------- ЗАГРУЗКА СКИНОВ (ГОЛОВА И ХВОСТ) --------------------
         const headUrls = [
             "https://i.ibb.co/pBkq71nP/412421.png",
             "https://i.ibb.co/VW19FvXh/image.png",
             "https://i.ibb.co/JW06HZK3/image.png"
         ];
-        const tailUrls = [
-            "https://cdn-icons-png.flaticon.com/512/732/732064.png",
-            "https://i.ibb.co/9pz7qTv/gold-tail.png",
-            "https://i.ibb.co/2g3xYw7/fire-tail.png"
-        ];
-        let savedHead = localStorage.getItem('pepsiedHeadIndex');
-        let headIdx = 0;
-        if (savedHead !== null && !isNaN(parseInt(savedHead))) { let idx = parseInt(savedHead); if (idx >= 0 && idx < headUrls.length) headIdx = idx; }
-        let savedTail = localStorage.getItem('pepsiedTailIndex');
-        let tailIdx = 0;
-        if (savedTail !== null && !isNaN(parseInt(savedTail))) { let idx = parseInt(savedTail); if (idx >= 0 && idx < tailUrls.length) tailIdx = idx; }
-        
+        const tailIcons = {
+            0: "🥤", 1: "💧", 2: "🧯", 3: "⭕", 4: "✨"
+        };
+        let headIdx = parseInt(localStorage.getItem('pepsiedHeadIndex')) || 0;
+        if (headIdx < 0 || headIdx >= headUrls.length) headIdx = 0;
+        let tailIdx = parseInt(localStorage.getItem('pepsiedTailIndex')) || 0;
         const headImage = new Image(); headImage.src = headUrls[headIdx];
-        const tailImage = new Image(); tailImage.src = tailUrls[tailIdx];
-        let headLoaded = false, tailLoaded = false;
+        let headLoaded = false;
         headImage.onload = () => { headLoaded = true; draw(); };
-        tailImage.onload = () => { tailLoaded = true; draw(); };
-        
-        // -------------------- ФОН (текстура травы + анимированные облака) --------------------
+
+        // -------------------- ФОН (трава + облака) --------------------
         const grass = new Image();
         grass.src = "https://art.pixilart.com/6387674a5f8851d.png";
         let grassLoaded = false;
         grass.onload = () => { grassLoaded = true; draw(); };
-        
-        // Генерация облаков
+        // Облака
         const bgDiv = document.getElementById('animatedBg');
-        for (let i = 0; i < 8; i++) {
-            const cloud = document.createElement('div');
+        for (let i=0; i<8; i++) {
+            let cloud = document.createElement('div');
             cloud.className = 'cloud';
-            const size = 80 + Math.random() * 150;
+            let size = 80 + Math.random() * 150;
             cloud.style.width = size + 'px';
             cloud.style.height = size * 0.6 + 'px';
             cloud.style.top = Math.random() * 100 + '%';
@@ -279,79 +291,136 @@
             cloud.style.animationDelay = Math.random() * 20 + 's';
             bgDiv.appendChild(cloud);
         }
-        
+
         // -------------------- ИГРОВЫЕ ПАРАМЕТРЫ --------------------
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
-        const scoreSpan = document.getElementById('scoreValue');
-        const recordSpan = document.getElementById('recordValue');
-        const livesPanelDiv = document.getElementById('livesPanel');
         canvas.width = 600; canvas.height = 600;
         const GRID_SIZE = 20;
         const CELL_SIZE = 30;
-        
+
+        // Статистика и прогрессия
+        let totalCollected = localStorage.getItem('pepsiedTotalCollected') ? parseInt(localStorage.getItem('pepsiedTotalCollected')) : 0;
         let personalBest = localStorage.getItem('pepsiedPersonalBest') ? parseInt(localStorage.getItem('pepsiedPersonalBest')) : 0;
-        recordSpan.innerText = personalBest;
-        function updatePersonalBest(score) {
-            if (score > personalBest) {
-                personalBest = score;
-                localStorage.setItem('pepsiedPersonalBest', personalBest);
-                recordSpan.innerText = personalBest;
-                addCoins(5);
+        document.getElementById('recordValue').innerText = personalBest;
+        let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
+        let snakeLevel = localStorage.getItem('pepsiedSnakeLevel') ? parseInt(localStorage.getItem('pepsiedSnakeLevel')) : 1;
+        let snakeExp = localStorage.getItem('pepsiedSnakeExp') ? parseInt(localStorage.getItem('pepsiedSnakeExp')) : 0;
+        const expPerLevel = 100;
+        function addExp(amount) {
+            snakeExp += amount;
+            while (snakeExp >= expPerLevel) {
+                snakeExp -= expPerLevel;
+                snakeLevel++;
+                localStorage.setItem('pepsiedSnakeLevel', snakeLevel);
+                // Увеличение стартовой длины на 1 за каждый уровень (но не более 5)
+                if (snakeLevel <= 5) startLengthBonus = Math.min(5, snakeLevel-1);
+                else startLengthBonus = 5;
+            }
+            localStorage.setItem('pepsiedSnakeExp', snakeExp);
+        }
+        let startLengthBonus = Math.min(5, snakeLevel-1);
+        
+        // Ежедневные задания (прогресс)
+        let dailyQuests = JSON.parse(localStorage.getItem('pepsiedDailyQuests')) || { collect: 0, surviveTime: 0, completed: false, lastReset: new Date().toDateString() };
+        function updateDailyCollect(amount) {
+            const today = new Date().toDateString();
+            if (dailyQuests.lastReset !== today) {
+                dailyQuests = { collect: 0, surviveTime: 0, completed: false, lastReset: today };
+            }
+            if (!dailyQuests.completed) {
+                dailyQuests.collect += amount;
+                if (dailyQuests.collect >= 50) {
+                    dailyQuests.completed = true;
+                    coins += 20;
+                    localStorage.setItem('pepsiedCoins', coins);
+                    playSound('bonus');
+                }
+                localStorage.setItem('pepsiedDailyQuests', JSON.stringify(dailyQuests));
             }
         }
-        
-        // Монеты и статистика
-        let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
-        let totalCollected = localStorage.getItem('pepsiedTotalCollected') ? parseInt(localStorage.getItem('pepsiedTotalCollected')) : 0;
-        let stats = { gamesPlayed: 0, wins: 0, deaths: 0, totalBonusesEaten: 0, totalCoinsEarned: 0 };
-        const savedStats = localStorage.getItem('pepsiedStats');
-        if (savedStats) { try { stats = JSON.parse(savedStats); } catch(e) {} }
-        function saveStats() { localStorage.setItem('pepsiedStats', JSON.stringify(stats)); }
-        function addCoins(amount) { coins += amount; localStorage.setItem('pepsiedCoins', coins); stats.totalCoinsEarned += amount; saveStats(); }
-        function updateTotalCollected(amount) { totalCollected += amount; localStorage.setItem('pepsiedTotalCollected', totalCollected); }
-        
-        // Достижения (новые)
-        let achievements = {
-            firstWin: false, fiftyCollected: false, speedDemon: false, skinChanger: false, bonusMaster: false,
-            masterDifficulty: false, acrobat: false, endless100: false, threeLivesPerfect: false
-        };
-        const savedAchievements = localStorage.getItem('pepsiedAchievements');
-        if (savedAchievements) { try { achievements = JSON.parse(savedAchievements); } catch(e) {} }
-        function saveAchievements() { localStorage.setItem('pepsiedAchievements', JSON.stringify(achievements)); }
-        
-        // Настройки игры
-        const difficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
-        let baseSpeed = 150, speedInc = 7;
-        if (difficulty === 'easy') { baseSpeed = 180; speedInc = 5; }
-        else if (difficulty === 'hard') { baseSpeed = 120; speedInc = 10; }
-        
-        const gameMode = localStorage.getItem('pepsiedGameMode') || "classic";
-        const isEndless = (gameMode === 'endless');
-        const isThreeLives = (gameMode === '3lives');
-        
-        let snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
-        let food = {x:12,y:12};
+        function updateDailyTime(seconds) {
+            const today = new Date().toDateString();
+            if (dailyQuests.lastReset !== today) {
+                dailyQuests = { collect: 0, surviveTime: 0, completed: false, lastReset: today };
+            }
+            if (!dailyQuests.completed) {
+                dailyQuests.surviveTime += seconds;
+                if (dailyQuests.surviveTime >= 120) {
+                    dailyQuests.completed = true;
+                    coins += 20;
+                    localStorage.setItem('pepsiedCoins', coins);
+                    playSound('bonus');
+                }
+                localStorage.setItem('pepsiedDailyQuests', JSON.stringify(dailyQuests));
+            }
+        }
+
+        // -------------------- МЕХАНИКИ --------------------
+        let snake = [];
+        let food = { x: 12, y: 12, isGolden: false };
         let direction = 'RIGHT', nextDir = 'RIGHT';
         let score = 0, gameLoop = null, gameActive = true, speedMs = baseSpeed;
         let lives = 3;
         let winScore = isEndless ? Infinity : 25;
+        
+        // Магнит
+        let magnetActive = false;
+        let magnetEndTime = 0;
+        // Тень
+        let trail = []; // массив позиций головы за последние TRAIL_LENGTH шагов
+        const TRAIL_LENGTH = 10;
+        // Комбо
+        let combo = 1;
+        let lastEatTime = 0;
+        const COMBO_WINDOW = 1500;
+        // Бонусы (стандартные + магнит)
         let bonus = null;
         let activeEffects = { speedMult: 1, scoreMult: 1, effectEndTime: 0 };
         let bonusEatenThisGame = 0;
         let particles = [];
         let paused = false;
-        let turnCounter = 0; // для достижения акробат
-        let lastTurnScore = 0;
+        let turnCounter = 0;
+        let gameStartTime = Date.now();
         
-        function updateLivesDisplay() {
-            if (isThreeLives) {
-                let hearts = ''; for (let i=0; i<lives; i++) hearts += '❤️'; for (let i=lives; i<3; i++) hearts += '🖤';
-                livesPanelDiv.innerHTML = hearts;
-                livesPanelDiv.style.display = 'flex';
-            } else { livesPanelDiv.style.display = 'none'; }
+        function initGame() {
+            let startLength = 3 + startLengthBonus;
+            snake = [];
+            for (let i=0; i<startLength; i++) {
+                snake.push({ x: 10 - i, y: 10 });
+            }
+            direction = 'RIGHT'; nextDir = 'RIGHT';
+            score = 0; combo = 1; updateScoreUI();
+            gameActive = true; speedMs = baseSpeed;
+            activeEffects = { speedMult:1, scoreMult:1, effectEndTime:0 };
+            magnetActive = false;
+            bonusEatenThisGame = 0;
+            bonus = null;
+            particles = [];
+            trail = [];
+            paused = false;
+            turnCounter = 0;
+            if (isThreeLives) lives = 3;
+            updateLivesDisplay();
+            generateRandomFood();
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(gameTick, speedMs);
+            gameStartTime = Date.now();
+            draw();
         }
-        updateLivesDisplay();
+        
+        function generateRandomFood() {
+            const free = [];
+            for (let i=0; i<GRID_SIZE; i++) for (let j=0; j<GRID_SIZE; j++) {
+                let occ = false;
+                for (let s of snake) if (s.x===i && s.y===j) { occ=true; break; }
+                if (!occ && (!bonus || !(bonus.x===i && bonus.y===j))) free.push({x:i, y:j});
+            }
+            if (!free.length) { gameActive=false; if(gameLoop)clearInterval(gameLoop); gameLoop=null; return; }
+            let pos = free[Math.floor(Math.random()*free.length)];
+            let isGolden = (Math.random() < 0.15); // 15% шанс золотой банки
+            food = { x: pos.x, y: pos.y, isGolden: isGolden };
+        }
         
         function spawnBonus() {
             if (bonus && bonus.active) return;
@@ -360,49 +429,138 @@
             for (let i=0; i<GRID_SIZE; i++) for (let j=0; j<GRID_SIZE; j++) {
                 let occ = false;
                 for (let s of snake) if (s.x===i && s.y===j) { occ=true; break; }
-                if (!occ && !(food.x===i && food.y===j)) free.push({x:i,y:j});
+                if (!occ && !(food.x===i && food.y===j)) free.push({x:i, y:j});
             }
             if (!free.length) return;
             const pos = free[Math.floor(Math.random()*free.length)];
-            const type = Math.floor(Math.random()*3);
-            bonus = { x:pos.x, y:pos.y, type, active:true, endTime:Date.now()+5000 };
+            const type = Math.floor(Math.random()*4); // 0,1,2,3 (магнит под номером 3)
+            bonus = { x:pos.x, y:pos.y, type:type, active:true, endTime:Date.now()+5000 };
         }
         
         function eatBonus(b) {
             bonusEatenThisGame++;
-            stats.totalBonusesEaten++;
-            saveStats();
-            if (!achievements.bonusMaster && bonusEatenThisGame>=3) { achievements.bonusMaster=true; saveAchievements(); addCoins(15); }
             playSound('bonus');
-            if (b.type===0) { activeEffects.speedMult=1.5; activeEffects.effectEndTime=Date.now()+5000; if(gameLoop){clearInterval(gameLoop); gameLoop=setInterval(gameTick, speedMs/activeEffects.speedMult);} }
-            else if (b.type===1) { activeEffects.speedMult=0.7; activeEffects.effectEndTime=Date.now()+5000; if(gameLoop){clearInterval(gameLoop); gameLoop=setInterval(gameTick, speedMs/activeEffects.speedMult);} }
-            else { activeEffects.scoreMult=2; activeEffects.effectEndTime=Date.now()+5000; }
-            bonus=null;
-        }
-        
-        function addParticles(x,y) {
-            for (let i=0;i<8;i++) particles.push({ x:x+CELL_SIZE/2, y:y+CELL_SIZE/2, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:20 });
-        }
-        function updateParticles() { for (let i=0; i<particles.length; i++) { particles[i].x+=particles[i].vx; particles[i].y+=particles[i].vy; particles[i].life--; if (particles[i].life<=0) { particles.splice(i,1); i--; } } }
-        function drawParticles() { for (let p of particles) { ctx.fillStyle = `rgba(255,200,100,${p.life/20})`; ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill(); } }
-        
-        function generateRandomFood() {
-            const free = [];
-            for (let i=0; i<GRID_SIZE; i++) for (let j=0; j<GRID_SIZE; j++) {
-                let occ = false;
-                for (let s of snake) if (s.x===i && s.y===j) { occ=true; break; }
-                if (!occ && (!bonus || !(bonus.x===i && bonus.y===j))) free.push({x:i,y:j});
+            if (b.type === 0) { // ускорение
+                activeEffects.speedMult = 1.5;
+                activeEffects.effectEndTime = Date.now()+5000;
+                if (gameLoop) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs/activeEffects.speedMult); }
+            } else if (b.type === 1) { // замедление
+                activeEffects.speedMult = 0.7;
+                activeEffects.effectEndTime = Date.now()+5000;
+                if (gameLoop) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs/activeEffects.speedMult); }
+            } else if (b.type === 2) { // удвоение очков
+                activeEffects.scoreMult = 2;
+                activeEffects.effectEndTime = Date.now()+5000;
+            } else if (b.type === 3) { // магнит
+                magnetActive = true;
+                magnetEndTime = Date.now()+3000;
             }
-            if (!free.length) { gameActive=false; if(gameLoop)clearInterval(gameLoop); gameLoop=null; draw(); return; }
-            food = free[Math.floor(Math.random()*free.length)];
+            bonus = null;
         }
+        
+        function applyMagnet() {
+            if (!magnetActive) return;
+            // Притягиваем еду к голове
+            let head = snake[0];
+            let dx = food.x - head.x;
+            let dy = food.y - head.y;
+            if (Math.abs(dx) + Math.abs(dy) > 1) {
+                if (dx !== 0) food.x += (dx > 0 ? -1 : 1);
+                if (dy !== 0) food.y += (dy > 0 ? -1 : 1);
+                // Не даём еде выйти за границы
+                food.x = Math.min(GRID_SIZE-1, Math.max(0, food.x));
+                food.y = Math.min(GRID_SIZE-1, Math.max(0, food.y));
+                // Также проверяем, не оказалась ли еда на змейке
+                for (let s of snake) {
+                    if (s.x === food.x && s.y === food.y) {
+                        // если пересеклась, перемещаем в ближайшую свободную клетку
+                        generateRandomFood();
+                        break;
+                    }
+                }
+            }
+        }
+        
+        function updateTrail() {
+            trail.unshift({ x: snake[0].x, y: snake[0].y });
+            if (trail.length > TRAIL_LENGTH) trail.pop();
+        }
+        
+        function moveSnake() {
+            if (!gameActive || paused) return;
+            direction = nextDir;
+            let newHead = {...snake[0]};
+            switch(direction) {
+                case 'RIGHT': newHead.x++; break;
+                case 'LEFT': newHead.x--; break;
+                case 'UP': newHead.y--; break;
+                case 'DOWN': newHead.y++; break;
+            }
+            const willEat = (newHead.x === food.x && newHead.y === food.y);
+            if (bonus && bonus.active && newHead.x===bonus.x && newHead.y===bonus.y) { eatBonus(bonus); addParticles(bonus.x*CELL_SIZE, bonus.y*CELL_SIZE); }
+            if (willEat) {
+                snake.unshift(newHead);
+                let addScore = 1;
+                if (activeEffects.scoreMult > 1 && Date.now() < activeEffects.effectEndTime) addScore = 2;
+                if (food.isGolden) addScore *= 3;
+                // Комбо
+                let now = Date.now();
+                if (now - lastEatTime < COMBO_WINDOW) {
+                    combo = Math.min(10, combo+1);
+                } else {
+                    combo = 1;
+                }
+                lastEatTime = now;
+                addScore = addScore * combo;
+                score += addScore;
+                updateScoreUI();
+                addParticles(food.x*CELL_SIZE, food.y*CELL_SIZE);
+                playSound('eat');
+                playSound('canopen');
+                // Опыт и ежедневные задания
+                addExp(1);
+                updateDailyCollect(1);
+                totalCollected++;
+                localStorage.setItem('pepsiedTotalCollected', totalCollected);
+                if (checkWin()) return;
+                if (score % 5 === 0 && speedMs > 70) {
+                    speedMs = Math.max(70, speedMs - speedInc);
+                    if (!paused && gameActive) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs / (activeEffects.speedMult||1)); }
+                }
+                generateRandomFood();
+                turnCounter = 0;
+            } else {
+                if (direction !== nextDir) turnCounter++;
+                else turnCounter = 0;
+                if (turnCounter >= 5 && !achievements.acrobat) { achievements.acrobat=true; saveAchievements(); addCoins(20); }
+                snake.unshift(newHead);
+                snake.pop();
+            }
+            // Магнит
+            applyMagnet();
+            if (magnetActive && Date.now() > magnetEndTime) magnetActive = false;
+            // Тень
+            updateTrail();
+            if (!bonus || !bonus.active) spawnBonus();
+            if (bonus && bonus.active && Date.now() > bonus.endTime) { bonus.active=false; bonus=null; }
+            if (activeEffects.effectEndTime && Date.now() > activeEffects.effectEndTime) {
+                activeEffects.speedMult=1; activeEffects.scoreMult=1;
+                if (!paused && gameActive) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs); }
+            }
+            const head = snake[0];
+            if (head.x<0 || head.x>=GRID_SIZE || head.y<0 || head.y>=GRID_SIZE) { gameOver(); return; }
+            for (let i=1; i<snake.length; i++) if (snake[i].x===head.x && snake[i].y===head.y) { gameOver(); return; }
+            draw();
+        }
+        
+        function gameTick() { moveSnake(); updateParticles(); }
         
         function checkWin() {
             if (!isEndless && score>=winScore) {
                 gameActive=false; if(gameLoop)clearInterval(gameLoop); gameLoop=null;
-                updatePersonalBest(score); updateTotalCollected(score);
+                updatePersonalBest(score);
                 if (!achievements.firstWin) { achievements.firstWin=true; saveAchievements(); addCoins(30); }
-                stats.wins++; saveStats();
+                updateDailyTime(Math.floor((Date.now()-gameStartTime)/1000));
                 playSound('win');
                 window.location.replace('win.html');
                 return true;
@@ -419,17 +577,19 @@
                 updateLivesDisplay();
                 if (lives===0) {
                     gameActive=false; if(gameLoop)clearInterval(gameLoop); gameLoop=null;
-                    updatePersonalBest(score); updateTotalCollected(score);
-                    stats.deaths++; saveStats();
+                    updatePersonalBest(score);
                     playSound('death');
                     window.location.replace('gameover.html');
                 } else {
                     playSound('death');
                     // сброс змейки
-                    snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+                    let startLength = 3 + startLengthBonus;
+                    snake = [];
+                    for (let i=0; i<startLength; i++) snake.push({ x: 10 - i, y: 10 });
                     direction='RIGHT'; nextDir='RIGHT';
                     gameActive=true; speedMs=Math.max(70, baseSpeed - Math.floor(score/5)*speedInc);
                     activeEffects={speedMult:1,scoreMult:1,effectEndTime:0};
+                    magnetActive=false;
                     bonus=null;
                     generateRandomFood();
                     if(gameLoop)clearInterval(gameLoop);
@@ -439,156 +599,190 @@
                 return;
             } else {
                 gameActive=false; if(gameLoop)clearInterval(gameLoop); gameLoop=null;
-                updatePersonalBest(score); updateTotalCollected(score);
-                stats.deaths++; saveStats();
+                updatePersonalBest(score);
+                updateDailyTime(Math.floor((Date.now()-gameStartTime)/1000));
                 playSound('death');
                 window.location.replace('gameover.html');
             }
         }
         
-        function initGame() {
-            snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
-            direction='RIGHT'; nextDir='RIGHT';
-            score=0; updateScoreUI();
-            gameActive=true; speedMs=baseSpeed;
-            activeEffects={speedMult:1,scoreMult:1,effectEndTime:0};
-            bonusEatenThisGame=0; bonus=null; particles=[];
-            paused=false; turnCounter=0;
-            if (isThreeLives) lives=3;
-            updateLivesDisplay();
-            generateRandomFood();
-            if(gameLoop)clearInterval(gameLoop);
-            gameLoop=setInterval(gameTick, speedMs);
-            draw();
-            stats.gamesPlayed++; saveStats();
+        function updatePersonalBest(scr) {
+            if (scr > personalBest) {
+                personalBest = scr;
+                localStorage.setItem('pepsiedPersonalBest', personalBest);
+                document.getElementById('recordValue').innerText = personalBest;
+                addCoins(5);
+                // оповещение рекорда (просто звук)
+                playSound('win');
+                // в будущем можно добавить голосовое "New record!"
+            }
+        }
+        
+        function addCoins(amount) {
+            coins += amount;
+            localStorage.setItem('pepsiedCoins', coins);
         }
         
         function updateScoreUI() {
-            scoreSpan.innerText = score;
-            if (score>personalBest) { personalBest=score; localStorage.setItem('pepsiedPersonalBest',personalBest); recordSpan.innerText=personalBest; addCoins(5); }
-            if (!achievements.speedDemon && speedMs<=80 && score>=15) { achievements.speedDemon=true; saveAchievements(); addCoins(15); }
-            if (!achievements.masterDifficulty && difficulty==='hard' && score>=25) { achievements.masterDifficulty=true; saveAchievements(); addCoins(20); }
-            if (!achievements.threeLivesPerfect && isThreeLives && lives===3 && score>=25) { achievements.threeLivesPerfect=true; saveAchievements(); addCoins(25); }
+            document.getElementById('scoreValue').innerText = score;
+            document.getElementById('comboDisplay').innerHTML = `x${combo}`;
         }
         
-        function moveSnake() {
-            if (!gameActive || paused) return;
-            direction = nextDir;
-            let newHead = {...snake[0]};
-            switch(direction) {
-                case 'RIGHT': newHead.x++; break;
-                case 'LEFT': newHead.x--; break;
-                case 'UP': newHead.y--; break;
-                case 'DOWN': newHead.y++; break;
-            }
-            const willEat = (newHead.x===food.x && newHead.y===food.y);
-            if (bonus && bonus.active && newHead.x===bonus.x && newHead.y===bonus.y) { eatBonus(bonus); addParticles(bonus.x*CELL_SIZE, bonus.y*CELL_SIZE); }
-            if (willEat) {
-                snake.unshift(newHead);
-                let addScore = (activeEffects.scoreMult>1 && Date.now()<activeEffects.effectEndTime) ? 2 : 1;
-                score += addScore;
-                updateScoreUI();
-                addParticles(food.x*CELL_SIZE, food.y*CELL_SIZE);
-                playSound('eat');
-                if (checkWin()) return;
-                if (score % 5 === 0 && speedMs > 70) {
-                    speedMs = Math.max(70, speedMs - speedInc);
-                    if (!paused && gameActive) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs / (activeEffects.speedMult||1)); }
-                }
-                generateRandomFood();
-                turnCounter = 0; // сброс акробата при еде
+        function updateLivesDisplay() {
+            if (isThreeLives) {
+                let hearts = '';
+                for (let i=0; i<lives; i++) hearts += '❤️';
+                for (let i=lives; i<3; i++) hearts += '🖤';
+                document.getElementById('livesPanel').innerHTML = hearts;
+                document.getElementById('livesPanel').style.display = 'flex';
             } else {
-                // проверка на акробата (повороты)
-                if (direction !== nextDir) turnCounter++;
-                else turnCounter = 0;
-                if (!achievements.acrobat && turnCounter >= 5) { achievements.acrobat = true; saveAchievements(); addCoins(20); }
-                snake.unshift(newHead);
-                snake.pop();
+                document.getElementById('livesPanel').style.display = 'none';
             }
-            if (!bonus || !bonus.active) spawnBonus();
-            if (bonus && bonus.active && Date.now() > bonus.endTime) { bonus.active=false; bonus=null; }
-            if (activeEffects.effectEndTime && Date.now() > activeEffects.effectEndTime) {
-                activeEffects.speedMult=1; activeEffects.scoreMult=1;
-                if (!paused && gameActive) { clearInterval(gameLoop); gameLoop = setInterval(gameTick, speedMs); }
-            }
-            const head = snake[0];
-            if (head.x<0 || head.x>=GRID_SIZE || head.y<0 || head.y>=GRID_SIZE) { gameOver(); return; }
-            for (let i=1; i<snake.length; i++) if (snake[i].x===head.x && snake[i].y===head.y) { gameOver(); return; }
-            draw();
         }
         
-        function gameTick() { moveSnake(); updateParticles(); }
+        // Анимация частиц
+        function addParticles(x,y) {
+            for (let i=0;i<8;i++) particles.push({ x:x+CELL_SIZE/2, y:y+CELL_SIZE/2, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:20 });
+        }
+        function updateParticles() {
+            for (let i=0; i<particles.length; i++) {
+                particles[i].x+=particles[i].vx; particles[i].y+=particles[i].vy;
+                particles[i].life--;
+                if (particles[i].life<=0) { particles.splice(i,1); i--; }
+            }
+        }
+        function drawParticles() {
+            for (let p of particles) {
+                ctx.fillStyle = `rgba(255,200,100,${p.life/20})`;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+            }
+        }
         
         function draw() {
-            if (grassLoaded && grass.complete && grass.naturalWidth>0) ctx.drawImage(grass,0,0,canvas.width,canvas.height);
-            else { ctx.fillStyle="#2d1f3a"; ctx.fillRect(0,0,canvas.width,canvas.height); }
-            ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.5;
-            for(let i=0;i<=GRID_SIZE;i++){ ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke(); }
-            // еда
-            const foodImg = new Image();
-            foodImg.src = "https://i.pinimg.com/474x/fd/f9/de/fdf9de1262b8ad9522b6ff90b772f46f.jpg?nii=t";
-            if (foodImg.complete && foodImg.naturalWidth>0) ctx.drawImage(foodImg, food.x*CELL_SIZE, food.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            else { ctx.fillStyle="#E31837"; ctx.beginPath(); ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4,0,2*Math.PI); ctx.fill(); ctx.fillStyle="white"; ctx.font=`bold ${CELL_SIZE*0.6}px monospace`; ctx.fillText("P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7); }
-            // бонус
-            if (bonus && bonus.active) {
-                ctx.fillStyle = bonus.type===0?"#00ffaa":(bonus.type===1?"#66ccff":"#ffcc44");
-                ctx.beginPath(); ctx.arc(bonus.x*CELL_SIZE+CELL_SIZE/2, bonus.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3,0,2*Math.PI); ctx.fill();
-                ctx.fillStyle="white"; ctx.font=`bold ${CELL_SIZE*0.5}px monospace`; ctx.fillText(bonus.type===0?"⚡":(bonus.type===1?"🐢":"2x"), bonus.x*CELL_SIZE+CELL_SIZE*0.35, bonus.y*CELL_SIZE+CELL_SIZE*0.7);
+            // Фон
+            if (grassLoaded && grass.complete && grass.naturalWidth>0) {
+                ctx.drawImage(grass,0,0,canvas.width,canvas.height);
+            } else {
+                ctx.fillStyle = darkMode ? "#000" : "#2d1f3a";
+                ctx.fillRect(0,0,canvas.width,canvas.height);
             }
-            // змейка
-            for(let i=0; i<snake.length; i++) {
+            // Тень (след хвоста)
+            if (!darkMode) {
+                for (let i=0; i<trail.length; i++) {
+                    let pos = trail[i];
+                    if (!pos) continue;
+                    ctx.fillStyle = `rgba(100,100,200,${0.3 - i*0.03})`;
+                    ctx.fillRect(pos.x*CELL_SIZE, pos.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            }
+            // Сетка (только если не тёмный режим)
+            if (!darkMode) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                for (let i=0;i<=GRID_SIZE;i++) {
+                    ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke();
+                }
+            }
+            // Еда
+            if (food.isGolden) {
+                ctx.fillStyle = "#FFD700";
+                ctx.shadowBlur = 10;
+            } else {
+                ctx.fillStyle = "#E31837";
+            }
+            ctx.beginPath(); ctx.arc(food.x*CELL_SIZE+CELL_SIZE/2, food.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.4, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.font = `bold ${CELL_SIZE*0.5}px monospace`;
+            ctx.fillText(food.isGolden ? "⭐" : "P", food.x*CELL_SIZE+CELL_SIZE*0.35, food.y*CELL_SIZE+CELL_SIZE*0.7);
+            ctx.shadowBlur = 0;
+            // Бонус
+            if (bonus && bonus.active) {
+                let color = bonus.type===0?"#00ffaa":(bonus.type===1?"#66ccff":(bonus.type===2?"#ffcc44":"#aa44ff"));
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(bonus.x*CELL_SIZE+CELL_SIZE/2, bonus.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3,0,2*Math.PI); ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.font = `bold ${CELL_SIZE*0.5}px monospace`;
+                let txt = bonus.type===0?"⚡":(bonus.type===1?"🐢":(bonus.type===2?"2x":"🧲"));
+                ctx.fillText(txt, bonus.x*CELL_SIZE+CELL_SIZE*0.35, bonus.y*CELL_SIZE+CELL_SIZE*0.7);
+            }
+            // Змейка
+            for (let i=0; i<snake.length; i++) {
                 const s = snake[i];
-                const x=s.x*CELL_SIZE, y=s.y*CELL_SIZE;
+                const x = s.x*CELL_SIZE, y = s.y*CELL_SIZE;
                 const isHead = (i===0);
-                if(isHead && headLoaded && headImage.complete && headImage.naturalWidth>0) ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
-                else if(!isHead && tailLoaded && tailImage.complete && tailImage.naturalWidth>0) ctx.drawImage(tailImage, x, y, CELL_SIZE, CELL_SIZE);
-                else {
-                    const r=CELL_SIZE*0.4;
-                    ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, r+1,0,2*Math.PI); ctx.fillStyle="#6a3e9a"; ctx.fill();
-                    ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, r,0,2*Math.PI); ctx.fillStyle=isHead?"#bc7eff":"#9a5fdf"; ctx.fill();
-                    if(!isHead) { ctx.fillStyle="#e8d5ff"; ctx.font=`${CELL_SIZE*0.55}px "Segoe UI Emoji"`; ctx.fillText("🐍", x+CELL_SIZE/3, y+CELL_SIZE-6); }
+                if (isHead && headLoaded && headImage.complete) {
+                    ctx.drawImage(headImage, x, y, CELL_SIZE, CELL_SIZE);
+                } else {
+                    // Хвост – отображаем иконку из tailIcons
+                    let tailIcon = tailIcons[tailIdx] || "🥤";
+                    ctx.font = `${CELL_SIZE*0.7}px "Segoe UI Emoji"`;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(tailIcon, x+CELL_SIZE*0.15, y+CELL_SIZE*0.8);
+                    if (!darkMode) {
+                        ctx.fillStyle = "#6a3e9a";
+                        ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, CELL_SIZE*0.3, 0, 2*Math.PI); ctx.fill();
+                    }
                 }
             }
             drawParticles();
-            if(paused){
-                ctx.fillStyle="rgba(0,0,0,0.7)"; ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.font="bold 30px system-ui"; ctx.fillStyle="white"; ctx.fillText("ПАУЗА", canvas.width/2-70, canvas.height/2);
+            if (paused) {
+                ctx.fillStyle = "rgba(0,0,0,0.7)";
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.font = "bold 30px system-ui"; ctx.fillStyle = "white";
+                ctx.fillText("ПАУЗА", canvas.width/2-70, canvas.height/2);
             }
         }
         
+        // Управление
         function changeDirection(newDir) {
             if (!gameActive || paused) return;
             const opp = {'UP':'DOWN','DOWN':'UP','LEFT':'RIGHT','RIGHT':'LEFT'};
             if (opp[newDir] !== direction) nextDir = newDir;
         }
-        
-        // Управление
         window.addEventListener('keydown', (e) => {
-            const k=e.key;
-            if (k==='ArrowUp') changeDirection('UP');
-            else if (k==='ArrowDown') changeDirection('DOWN');
-            else if (k==='ArrowLeft') changeDirection('LEFT');
-            else if (k==='ArrowRight') changeDirection('RIGHT');
-            e.preventDefault();
+            if (e.key === 'ArrowUp') changeDirection('UP');
+            else if (e.key === 'ArrowDown') changeDirection('DOWN');
+            else if (e.key === 'ArrowLeft') changeDirection('LEFT');
+            else if (e.key === 'ArrowRight') changeDirection('RIGHT');
+            else if (e.key === 'c' && e.ctrlKey) {
+                // секретные коды (можно ввести в консоль, но и через ctrl+C?)
+            }
         });
         document.querySelectorAll('.dir-btn').forEach(btn => {
-            const dir=btn.dataset.dir;
-            btn.addEventListener('click', (e) => { e.preventDefault(); changeDirection(dir); });
+            const dir = btn.dataset.dir;
+            btn.addEventListener('click', () => changeDirection(dir));
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(dir); });
         });
         
         // Пауза
         const pauseBtn = document.getElementById('pauseBtn');
         pauseBtn.addEventListener('click', () => {
-            if(!gameActive) return;
-            paused=!paused;
-            if(paused) { if(gameLoop)clearInterval(gameLoop); gameLoop=null; pauseBtn.innerText='▶️ Старт'; }
-            else { gameLoop=setInterval(gameTick, speedMs/(activeEffects.speedMult||1)); pauseBtn.innerText='⏸️ Пауза'; }
+            if (!gameActive) return;
+            paused = !paused;
+            if(paused) { if(gameLoop)clearInterval(gameLoop); gameLoop=null; pauseBtn.innerText='▶️'; }
+            else { gameLoop = setInterval(gameTick, speedMs/(activeEffects.speedMult||1)); pauseBtn.innerText='⏸️'; }
             draw();
         });
         
+        // Достижения (загружаем из localStorage)
+        let achievements = {
+            firstWin: false, fiftyCollected: false, speedDemon: false, skinChanger: false, bonusMaster: false,
+            masterDifficulty: false, acrobat: false, endless100: false, threeLivesPerfect: false
+        };
+        const savedAchievements = localStorage.getItem('pepsiedAchievements');
+        if (savedAchievements) { try { achievements = JSON.parse(savedAchievements); } catch(e) {} }
+        function saveAchievements() { localStorage.setItem('pepsiedAchievements', JSON.stringify(achievements)); }
+        
         document.getElementById('restartGameBtn').addEventListener('click', () => { if(gameLoop)clearInterval(gameLoop); initGame(); });
         document.getElementById('backToMenuBtn').addEventListener('click', () => window.location.href='index.html');
+        
+        // Секретные коды (через консоль)
+        window.cheat = function(code) {
+            if (code === 'pepsigold') { coins += 100; localStorage.setItem('pepsiedCoins', coins); alert('+100 монет!'); playSound('bonus'); }
+            else if (code === 'darkmode') { darkMode = !darkMode; document.body.classList.toggle('dark-mode', darkMode); localStorage.setItem('pepsiedDarkMode', darkMode); draw(); }
+            else alert('Неизвестный код');
+        };
         
         initGame();
     })();
