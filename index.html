@@ -108,6 +108,7 @@
         .shop-btn { background: #4a1e7a; }
         .stats-btn { background: #1f4a6e; }
         .settings-btn { background: #6a3e9a; }
+        .difficulty-btn { background: #3a6e4a; }
 
         .start-btn:hover, .skin-btn:hover, .achievements-btn:hover, .shop-btn:hover, .mode-btn:hover, .difficulty-btn:hover, .stats-btn:hover, .settings-btn:hover {
             background: #7c1aff;
@@ -222,11 +223,22 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 10px;
+            text-align: left;
         }
         .shop-item-img {
             width: 60px;
             height: 60px;
             object-fit: contain;
+            background: #2c1a48;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        .shop-item-info {
+            flex: 1;
+            text-align: left;
         }
         .buy-btn {
             background: #6600ff;
@@ -309,6 +321,81 @@
         .progress-bar { width: 100%; height: 6px; background: #333; border-radius: 3px; margin-top: 5px; overflow: hidden; }
         .progress-fill { height: 100%; background: #ffcc44; width: 0%; }
 
+        /* Стили выбора сложности */
+        .difficulty-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .difficulty-option {
+            background: #1a0b2e;
+            border-radius: 60px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.1s;
+        }
+        .difficulty-option.selected {
+            border-color: #ffcc44;
+            background: #3a1a6e;
+        }
+        .difficulty-icon {
+            font-size: 2rem;
+            width: 50px;
+        }
+        .difficulty-text {
+            flex: 1;
+            text-align: left;
+        }
+        .difficulty-title {
+            font-weight: bold;
+        }
+        .difficulty-desc {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .skin-preview {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            background: #1a0b2e;
+            border-radius: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 3px solid transparent;
+        }
+        .skin-preview.selected {
+            border-color: #ffcc44;
+            box-shadow: 0 0 15px #ffcc44;
+        }
+        .skin-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .skin-nav {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 25px;
+        }
+        .nav-arrow {
+            background: #5f2e9e;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            padding: 5px 20px;
+            border-radius: 60px;
+            cursor: pointer;
+        }
+
         @media (max-width: 850px) {
             .right-content { width: 70%; padding: 30px; }
             .game-title { font-size: 3.5rem; }
@@ -336,7 +423,7 @@
             <button class="shop-btn" id="openShopBtn">🛒 Магазин</button>
             <button class="achievements-btn" id="openAchievementsBtn">🏆 Достижения</button>
             <button class="stats-btn" id="openStatsBtn">📊 Статистика</button>
-            <button class="settings-btn" id="openSettingsBtn">⚙️ Настройки</button>
+            <button class="settings-btn" id="openSettingsBtn">🎛️ Настройки</button>
             <button class="difficulty-btn" id="openDifficultyBtn">⚙️ Сложность</button>
         </div>
         <div class="modes-panel">
@@ -348,7 +435,7 @@
     <div class="dev-credit">Разработчик Влад Spodzh</div>
 </div>
 
-<!-- Модалка скинов (головы) -->
+<!-- Модалка выбора скинов (головы) -->
 <div id="skinModal" class="modal"><div class="modal-content"><h2>Выбери голову змеи</h2>
     <div class="skin-preview" id="skinPreviewContainer"><img id="skinPreview" src=""></div>
     <div class="skin-nav"><button class="nav-arrow" id="prevSkinBtn">◀</button><button class="nav-arrow" id="nextSkinBtn">▶</button></div>
@@ -357,7 +444,7 @@
     <button class="close-modal-btn" id="closeSkinModalBtn">Закрыть</button>
 </div></div>
 
-<!-- Модалка магазина (вкладки) -->
+<!-- Модалка магазина -->
 <div id="shopModal" class="modal"><div class="modal-content">
     <h2>🛒 Магазин</h2>
     <div class="shop-tabs"><button class="tab-btn active" data-tab="heads">Головы</button><button class="tab-btn" data-tab="tails">Хвосты</button></div>
@@ -366,7 +453,7 @@
     <button class="close-modal-btn" id="closeShopModalBtn">Закрыть</button>
 </div></div>
 
-<!-- Модалка достижений (расширенная) -->
+<!-- Модалка достижений -->
 <div id="achievementsModal" class="modal"><div class="modal-content achievements-content"><h2>🏆 Достижения</h2><div id="achievementsList"></div><button class="close-modal-btn" id="closeAchievementsBtn">Закрыть</button></div></div>
 
 <!-- Модалка статистики -->
@@ -379,7 +466,7 @@
     <button class="close-modal-btn" id="closeSettingsBtn">Закрыть</button>
 </div></div>
 
-<!-- Модалка сложности (оставляем как раньше) -->
+<!-- Модалка сложности -->
 <div id="difficultyModal" class="modal"><div class="modal-content"><h2>⚙️ Уровень сложности</h2>
     <div class="difficulty-options">
         <div class="difficulty-option" data-diff="easy"><div class="difficulty-icon">🌿</div><div class="difficulty-text"><div class="difficulty-title">Лёгкий</div><div class="difficulty-desc">Змейка медленнее, проще собрать рекорд</div></div></div>
@@ -404,11 +491,11 @@
         if (ownedHeads.includes(idx)) currentHead = idx;
     }
 
-    // -------------------- СКИНЫ ХВОСТОВ --------------------
+    // -------------------- СКИНЫ ХВОСТОВ (с эмодзи вместо картинок) --------------------
     const tailSkins = [
-        { name: "Pepsi", url: "https://cdn-icons-png.flaticon.com/512/732/732064.png", price: 0 },
-        { name: "Золотой", url: "https://i.ibb.co/9pz7qTv/gold-tail.png", price: 100 },      // замените на свою картинку
-        { name: "Огненный", url: "https://i.ibb.co/2g3xYw7/fire-tail.png", price: 150 }       // замените на свою картинку
+        { name: "Pepsi", icon: "🥤", price: 0 },
+        { name: "Золотой", icon: "⭐", price: 100 },
+        { name: "Огненный", icon: "🔥", price: 150 }
     ];
     let ownedTails = JSON.parse(localStorage.getItem('pepsiedOwnedTails')) || [0];
     let currentTail = 0;
@@ -423,7 +510,7 @@
     function updateCoinDisplay() { document.getElementById('coinAmount').innerText = coins; }
     updateCoinDisplay();
 
-    // -------------------- ДОСТИЖЕНИЯ (НОВЫЕ) --------------------
+    // -------------------- ДОСТИЖЕНИЯ --------------------
     let achievements = {
         firstWin: false, fiftyCollected: false, speedDemon: false, skinChanger: false, bonusMaster: false,
         masterDifficulty: false, acrobat: false, endless100: false, threeLivesPerfect: false
@@ -471,7 +558,6 @@
     const savedStats = localStorage.getItem('pepsiedStats');
     if (savedStats) { try { stats = JSON.parse(savedStats); } catch(e) {} }
     function saveStats() { localStorage.setItem('pepsiedStats', JSON.stringify(stats)); }
-    function updateStats(stat, value) { if (stats[stat] !== undefined) { stats[stat] += value; saveStats(); } }
     function renderStats() {
         document.getElementById('statsList').innerHTML = `
             <div class="stats-item"><span>🎮 Сыграно игр:</span><span>${stats.gamesPlayed}</span></div>
@@ -517,8 +603,10 @@
     // -------------------- СЛОЖНОСТЬ --------------------
     let currentDifficulty = localStorage.getItem('pepsiedDifficulty') || "normal";
     const difficultyModal = document.getElementById('difficultyModal');
-    document.getElementById('openDifficultyBtn').addEventListener('click', () => { updateDifficultyUI(); difficultyModal.style.display = 'flex'; });
-    document.getElementById('closeDifficultyBtn').addEventListener('click', () => difficultyModal.style.display = 'none');
+    const openDifficultyBtn = document.getElementById('openDifficultyBtn');
+    const closeDifficultyBtn = document.getElementById('closeDifficultyBtn');
+    openDifficultyBtn.addEventListener('click', () => { updateDifficultyUI(); difficultyModal.style.display = 'flex'; });
+    closeDifficultyBtn.addEventListener('click', () => difficultyModal.style.display = 'none');
     function updateDifficultyUI() {
         document.querySelectorAll('.difficulty-option').forEach(opt => {
             const diff = opt.getAttribute('data-diff');
@@ -550,7 +638,8 @@
         shopHeadsDiv.innerHTML = notOwned.map(skin => {
             const idx = headSkins.findIndex(s => s.name === skin.name);
             return `<div class="shop-item">
-                        <img src="${skin.url}" class="shop-item-img"><div>${skin.name}</div>
+                        <div class="shop-item-img"><img src="${skin.url}" style="width:100%;height:100%;object-fit:contain;"></div>
+                        <div class="shop-item-info"><strong>${skin.name}</strong></div>
                         <div>${skin.price} 🪙 <button class="buy-btn" data-type="head" data-idx="${idx}">Купить</button></div>
                     </div>`;
         }).join('');
@@ -569,7 +658,6 @@
             localStorage.setItem('pepsiedOwnedHeads', JSON.stringify(ownedHeads));
             shopMessage.innerText = `Куплена голова "${skin.name}"!`;
             renderShopHeads();
-            updateStats('totalCoinsEarned', skin.price);
         } else { shopMessage.innerText = 'Недостаточно монет!'; }
     }
 
@@ -579,7 +667,8 @@
         shopTailsDiv.innerHTML = notOwned.map(tail => {
             const idx = tailSkins.findIndex(t => t.name === tail.name);
             return `<div class="shop-item">
-                        <img src="${tail.url}" class="shop-item-img"><div>${tail.name}</div>
+                        <div class="shop-item-img">${tail.icon}</div>
+                        <div class="shop-item-info"><strong>${tail.name}</strong></div>
                         <div>${tail.price} 🪙 <button class="buy-btn" data-type="tail" data-idx="${idx}">Купить</button></div>
                     </div>`;
         }).join('');
@@ -598,7 +687,6 @@
             localStorage.setItem('pepsiedOwnedTails', JSON.stringify(ownedTails));
             shopMessage.innerText = `Куплен хвост "${tail.name}"!`;
             renderShopTails();
-            updateStats('totalCoinsEarned', tail.price);
         } else { shopMessage.innerText = 'Недостаточно монет!'; }
     }
 
@@ -618,7 +706,7 @@
         });
     });
 
-    // -------------------- МОДАЛКА ГОЛОВ --------------------
+    // -------------------- МОДАЛКА ВЫБОРА ГОЛОВ --------------------
     const skinModal = document.getElementById('skinModal');
     const openSkinBtn = document.getElementById('openSkinBtn');
     const closeSkinBtn = document.getElementById('closeSkinModalBtn');
@@ -654,7 +742,7 @@
     prevSkinBtn.addEventListener('click', () => { tempHeadIndex = (tempHeadIndex-1+headSkins.length)%headSkins.length; updateSkinPreview(); });
     nextSkinBtn.addEventListener('click', () => { tempHeadIndex = (tempHeadIndex+1)%headSkins.length; updateSkinPreview(); });
 
-    // -------------------- МОДАЛКИ СТАТИСТИКИ И НАСТРОЕК --------------------
+    // -------------------- ДРУГИЕ МОДАЛКИ --------------------
     const statsModal = document.getElementById('statsModal');
     document.getElementById('openStatsBtn').addEventListener('click', () => { renderStats(); statsModal.style.display = 'flex'; });
     document.getElementById('closeStatsBtn').addEventListener('click', () => statsModal.style.display = 'none');
