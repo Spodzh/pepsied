@@ -262,7 +262,58 @@
 <div id="difficultyModal" class="modal"><div class="modal-content"><h2>⚙️ Уровень сложности</h2><div class="difficulty-options"><div class="difficulty-option" data-diff="easy"><div class="difficulty-icon">🌿</div><div class="difficulty-text"><div class="difficulty-title">Лёгкий</div><div class="difficulty-desc">Змейка медленнее, проще собрать рекорд</div></div></div><div class="difficulty-option" data-diff="normal"><div class="difficulty-icon">⚡</div><div class="difficulty-text"><div class="difficulty-title">Средний</div><div class="difficulty-desc">Стандартная скорость, челлендж</div></div></div><div class="difficulty-option" data-diff="hard"><div class="difficulty-icon">🔥</div><div class="difficulty-text"><div class="difficulty-title">Сложный</div><div class="difficulty-desc">Высокая скорость, быстрое ускорение</div></div></div></div><button class="close-modal-btn" id="closeDifficultyBtn">Закрыть</button></div></div>
 
 <script>
-    // -------------------- СКИНЫ ГОЛОВ --------------------
+    //  Загрузка данных из localStorage (монеты, скины, достижения, статистика, ранги, уровни, ежедневные задания)
+    // --------------------------------------------------------------
+    let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
+    document.getElementById('coinAmount').innerText = coins;
+
+    // Ранги и уровни
+    let totalCollected = localStorage.getItem('pepsiedTotalCollected') ? parseInt(localStorage.getItem('pepsiedTotalCollected')) : 0;
+    let snakeLevel = localStorage.getItem('pepsiedSnakeLevel') ? parseInt(localStorage.getItem('pepsiedSnakeLevel')) : 1;
+    let snakeExp = localStorage.getItem('pepsiedSnakeExp') ? parseInt(localStorage.getItem('pepsiedSnakeExp')) : 0;
+    const expPerLevel = 100;
+    function updateRankAndLevel() {
+        const rankThresholds = [0, 10, 50, 100, 200, 500];
+        const rankNames = ["Без пепси", "Любитель пепси", "Пепси-эксперт", "Пепси-мастер", "Пепси-легенда", "Пепси-король"];
+        let rankIndex = 0;
+        for (let i = rankThresholds.length-1; i>=0; i--) {
+            if (totalCollected >= rankThresholds[i]) { rankIndex = i; break; }
+        }
+        document.getElementById('rankDisplay').innerText = rankNames[rankIndex];
+        document.getElementById('levelDisplay').innerText = snakeLevel;
+    }
+    updateRankAndLevel();
+
+    // Ежедневные задания
+    let dailyQuests = JSON.parse(localStorage.getItem('pepsiedDailyQuests')) || { collect: 0, surviveTime: 0, completed: false, lastReset: new Date().toDateString() };
+    function resetDailyIfNeeded() {
+        const today = new Date().toDateString();
+        if (dailyQuests.lastReset !== today) {
+            dailyQuests = { collect: 0, surviveTime: 0, completed: false, lastReset: today };
+            localStorage.setItem('pepsiedDailyQuests', JSON.stringify(dailyQuests));
+        }
+        const collectProgress = Math.min(100, (dailyQuests.collect / 50) * 100);
+        const timeProgress = Math.min(100, (dailyQuests.surviveTime / 120) * 100);
+        document.getElementById('dailyProgress').innerHTML = `
+            <div>🥤 Собрать банок: ${dailyQuests.collect}/50</div>
+            <div>⏱️ Продержаться: ${dailyQuests.surviveTime}/120 сек</div>
+            <div>${dailyQuests.completed ? '✅ Задание выполнено! +20 🪙' : ''}</div>
+        `;
+    }
+    resetDailyIfNeeded();
+
+    // Настройки (тёмный режим)
+    let darkMode = localStorage.getItem('pepsiedDarkMode') === 'true';
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkMode) darkModeToggle.classList.add('active');
+    darkModeToggle.addEventListener('click', () => {
+        darkMode = !darkMode;
+        localStorage.setItem('pepsiedDarkMode', darkMode);
+        if (darkMode) darkModeToggle.classList.add('active');
+        else darkModeToggle.classList.remove('active');
+    });
+
+    // Скины голов (как раньше)
     const headSkins = [
         { name: "Дана", url: "https://i.ibb.co/pBkq71nP/412421.png", price: 0 },
         { name: "Настя", url: "https://i.ibb.co/VW19FvXh/image.png", price: 50 },
@@ -271,24 +322,20 @@
     let ownedHeads = JSON.parse(localStorage.getItem('pepsiedOwnedHeads')) || [0];
     let currentHead = 0;
     const savedHead = localStorage.getItem('pepsiedHeadIndex');
-    if (savedHead !== null && !isNaN(parseInt(savedHead))) {
-        let idx = parseInt(savedHead);
-        if (ownedHeads.includes(idx)) currentHead = idx;
-    }
+    if (savedHead !== null && ownedHeads.includes(parseInt(savedHead))) currentHead = parseInt(savedHead);
 
-    // -------------------- СКИНЫ ХВОСТОВ (с эмодзи вместо картинок) --------------------
+    // Хвосты с новыми скинами (пузыри, шланг, колечки)
     const tailSkins = [
         { name: "Pepsi", icon: "🥤", price: 0 },
-        { name: "Золотой", icon: "⭐", price: 100 },
-        { name: "Огненный", icon: "🔥", price: 150 }
+        { name: "Пузыри", icon: "💧", price: 80 },
+        { name: "Пожарный шланг", icon: "🧯", price: 120 },
+        { name: "Колечки колы", icon: "⭕", price: 150 },
+        { name: "Светящаяся линия", icon: "✨", price: 200 }
     ];
     let ownedTails = JSON.parse(localStorage.getItem('pepsiedOwnedTails')) || [0];
     let currentTail = 0;
     const savedTail = localStorage.getItem('pepsiedTailIndex');
-    if (savedTail !== null && !isNaN(parseInt(savedTail))) {
-        let idx = parseInt(savedTail);
-        if (ownedTails.includes(idx)) currentTail = idx;
-    }
+    if (savedTail !== null && ownedTails.includes(parseInt(savedTail))) currentTail = parseInt(savedTail);
 
     // -------------------- МОНЕТЫ --------------------
     let coins = localStorage.getItem('pepsiedCoins') ? parseInt(localStorage.getItem('pepsiedCoins')) : 0;
