@@ -254,45 +254,12 @@
 </div>
 
 <!-- Модалка выбора скинов (головы) -->
-<div id="skinModal" class="modal"><div class="modal-content"><h2>Выбери голову змеи</h2>
-    <div class="skin-preview" id="skinPreviewContainer"><img id="skinPreview" src=""></div>
-    <div class="skin-nav"><button class="nav-arrow" id="prevSkinBtn">◀</button><button class="nav-arrow" id="nextSkinBtn">▶</button></div>
-    <div class="skin-name" id="skinName"></div><div class="skin-price" id="skinPrice"></div>
-    <button class="select-skin-btn" id="selectSkinBtn">Выбрать</button>
-    <button class="close-modal-btn" id="closeSkinModalBtn">Закрыть</button>
-</div></div>
-
-<!-- Модалка магазина -->
-<div id="shopModal" class="modal"><div class="modal-content">
-    <h2>🛒 Магазин</h2>
-    <div class="shop-tabs"><button class="tab-btn active" data-tab="heads">Головы</button><button class="tab-btn" data-tab="tails">Хвосты</button></div>
-    <div id="shopHeadsList"></div><div id="shopTailsList" style="display:none;"></div>
-    <div id="shopMessage" style="font-size:0.8rem; margin-top:10px;"></div>
-    <button class="close-modal-btn" id="closeShopModalBtn">Закрыть</button>
-</div></div>
-
-<!-- Модалка достижений -->
+<div id="skinModal" class="modal"><div class="modal-content"><h2>Выбери голову змеи</h2><div class="skin-preview" id="skinPreviewContainer"><img id="skinPreview" src=""></div><div class="skin-nav"><button class="nav-arrow" id="prevSkinBtn">◀</button><button class="nav-arrow" id="nextSkinBtn">▶</button></div><div class="skin-name" id="skinName"></div><div class="skin-price" id="skinPrice"></div><button class="select-skin-btn" id="selectSkinBtn">Выбрать</button><button class="close-modal-btn" id="closeSkinModalBtn">Закрыть</button></div></div>
+<div id="shopModal" class="modal"><div class="modal-content"><h2>🛒 Магазин</h2><div class="shop-tabs"><button class="tab-btn active" data-tab="heads">Головы</button><button class="tab-btn" data-tab="tails">Хвосты</button></div><div id="shopHeadsList"></div><div id="shopTailsList" style="display:none;"></div><div id="shopMessage" style="font-size:0.8rem; margin-top:10px;"></div><button class="close-modal-btn" id="closeShopModalBtn">Закрыть</button></div></div>
 <div id="achievementsModal" class="modal"><div class="modal-content achievements-content"><h2>🏆 Достижения</h2><div id="achievementsList"></div><button class="close-modal-btn" id="closeAchievementsBtn">Закрыть</button></div></div>
-
-<!-- Модалка статистики -->
 <div id="statsModal" class="modal"><div class="modal-content"><h2>📊 Статистика</h2><div id="statsList" class="stats-list"></div><button class="close-modal-btn" id="closeStatsBtn">Закрыть</button></div></div>
-
-<!-- Модалка настроек -->
-<div id="settingsModal" class="modal"><div class="modal-content"><h2>⚙️ Настройки</h2>
-    <div class="settings-item"><label>🎮 Сенсорные кнопки</label><div id="touchToggle" class="toggle-switch"></div></div>
-    <div class="settings-item"><label>🔊 Громкость звуков</label><input type="range" id="volumeSlider" min="0" max="100" value="70"></div>
-    <button class="close-modal-btn" id="closeSettingsBtn">Закрыть</button>
-</div></div>
-
-<!-- Модалка сложности -->
-<div id="difficultyModal" class="modal"><div class="modal-content"><h2>⚙️ Уровень сложности</h2>
-    <div class="difficulty-options">
-        <div class="difficulty-option" data-diff="easy"><div class="difficulty-icon">🌿</div><div class="difficulty-text"><div class="difficulty-title">Лёгкий</div><div class="difficulty-desc">Змейка медленнее, проще собрать рекорд</div></div></div>
-        <div class="difficulty-option" data-diff="normal"><div class="difficulty-icon">⚡</div><div class="difficulty-text"><div class="difficulty-title">Средний</div><div class="difficulty-desc">Стандартная скорость, челлендж</div></div></div>
-        <div class="difficulty-option" data-diff="hard"><div class="difficulty-icon">🔥</div><div class="difficulty-text"><div class="difficulty-title">Сложный</div><div class="difficulty-desc">Высокая скорость, быстрое ускорение</div></div></div>
-    </div>
-    <button class="close-modal-btn" id="closeDifficultyBtn">Закрыть</button>
-</div></div>
+<div id="settingsModal" class="modal"><div class="modal-content"><h2>⚙️ Настройки</h2><div class="settings-item"><label>🎮 Сенсорные кнопки</label><div id="touchToggle" class="toggle-switch"></div></div><div class="settings-item"><label>🔊 Громкость звуков</label><input type="range" id="volumeSlider" min="0" max="100" value="70"></div><div class="settings-item"><label>🌙 Тёмный режим игры</label><div id="darkModeToggle" class="toggle-switch"></div></div><button class="close-modal-btn" id="closeSettingsBtn">Закрыть</button></div></div>
+<div id="difficultyModal" class="modal"><div class="modal-content"><h2>⚙️ Уровень сложности</h2><div class="difficulty-options"><div class="difficulty-option" data-diff="easy"><div class="difficulty-icon">🌿</div><div class="difficulty-text"><div class="difficulty-title">Лёгкий</div><div class="difficulty-desc">Змейка медленнее, проще собрать рекорд</div></div></div><div class="difficulty-option" data-diff="normal"><div class="difficulty-icon">⚡</div><div class="difficulty-text"><div class="difficulty-title">Средний</div><div class="difficulty-desc">Стандартная скорость, челлендж</div></div></div><div class="difficulty-option" data-diff="hard"><div class="difficulty-icon">🔥</div><div class="difficulty-text"><div class="difficulty-title">Сложный</div><div class="difficulty-desc">Высокая скорость, быстрое ускорение</div></div></div></div><button class="close-modal-btn" id="closeDifficultyBtn">Закрыть</button></div></div>
 
 <script>
     // -------------------- СКИНЫ ГОЛОВ --------------------
